@@ -7,33 +7,33 @@ public class SleepingSession {
     private final LocalDateTime startTime;
     private final LocalDateTime endTime;
     private final SleepQuality quality;
-    
+
     public enum SleepQuality {
         GOOD, NORMAL, BAD
     }
-    
+
     public SleepingSession(LocalDateTime startTime, LocalDateTime endTime, SleepQuality quality) {
         this.startTime = startTime;
         this.endTime = endTime;
         this.quality = quality;
     }
-    
+
     public LocalDateTime getStartTime() {
         return startTime;
     }
-    
+
     public LocalDateTime getEndTime() {
         return endTime;
     }
-    
+
     public SleepQuality getQuality() {
         return quality;
     }
-    
+
     public long getDurationMinutes() {
         return Duration.between(startTime, endTime).toMinutes();
     }
-    
+
     public boolean isNightSession() {
         LocalDateTime nightStart = startTime.toLocalDate().atStartOfDay();
         LocalDateTime nightEnd = nightStart.plusHours(6);
