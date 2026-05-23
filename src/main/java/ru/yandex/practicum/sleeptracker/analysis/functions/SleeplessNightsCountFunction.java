@@ -13,7 +13,6 @@ import java.util.stream.Stream;
 
 public class SleeplessNightsCountFunction implements SleepAnalysisFunction<Integer> {
 
-    private static final int NIGHT_END_HOUR = 6;
     private static final LocalTime NOON = LocalTime.of(12, 0);
 
     @Override
@@ -22,7 +21,6 @@ public class SleeplessNightsCountFunction implements SleepAnalysisFunction<Integ
             return new SleepAnalysisResult<>("Количество бессонных ночей", 0);
         }
 
-        // Находим первую и последнюю даты
         LocalDateTime firstStart = sessions.stream()
             .map(SleepingSession::getStartTime)
             .min(LocalDateTime::compareTo)
@@ -33,29 +31,24 @@ public class SleeplessNightsCountFunction implements SleepAnalysisFunction<Integ
             .max(LocalDateTime::compareTo)
             .get();
 
-        // Определяем первую и последнюю ночь в периоде
         LocalDate firstNight = getNightDate(firstStart);
         LocalDate lastNight = getNightDate(lastEnd);
 
-        // Все ночи в периоде
         Set<LocalDate> allNights = Stream.iterate(firstNight, date -> date.plusDays(1))
             .limit(Period.between(firstNight, lastNight).getDays() + 1)
             .collect(Collectors.toSet());
 
-        // Ночи, в которые был сон
         Set<LocalDate> nightsWithSleep = sessions.stream()
             .filter(SleepingSession::isNightSession)
             .flatMap(session -> getNightsForSession(session))
             .collect(Collectors.toSet());
 
-        // Бессонные ночи = все ночи - ночи со сном
         long sleeplessNights = allNights.size() - nightsWithSleep.size();
 
         return new SleepAnalysisResult<>("Количество бессонных ночей", (int) sleeplessNights);
     }
 
     private LocalDate getNightDate(LocalDateTime dateTime) {
-        // Если время до полудня - ночь относится к предыдущему дню
         if (dateTime.toLocalTime().isBefore(NOON)) {
             return dateTime.toLocalDate().minusDays(1);
         } else {
