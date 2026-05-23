@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class SleepTrackerAppTest {
 
-  
+    // ==================== ТЕСТЫ ДЛЯ SessionCountFunction ====================
     @Test
     void testSessionCountWithEmptyList() {
         List<SleepingSession> sessions = Collections.emptyList();
@@ -46,6 +46,7 @@ public class SleepTrackerAppTest {
         assertEquals(3, function.apply(sessions).getValue());
     }
 
+    // ==================== ТЕСТЫ ДЛЯ MinDurationFunction ====================
     @Test
     void testMinDurationWithEmptyList() {
         List<SleepingSession> sessions = Collections.emptyList();
@@ -74,6 +75,7 @@ public class SleepTrackerAppTest {
         assertEquals(600L, function.apply(sessions).getValue());
     }
 
+    // ==================== ТЕСТЫ ДЛЯ MaxDurationFunction ====================
     @Test
     void testMaxDurationWithEmptyList() {
         List<SleepingSession> sessions = Collections.emptyList();
@@ -92,6 +94,7 @@ public class SleepTrackerAppTest {
         assertEquals(720L, function.apply(sessions).getValue());
     }
 
+    // ==================== ТЕСТЫ ДЛЯ AvgDurationFunction ====================
     @Test
     void testAvgDurationWithEmptyList() {
         List<SleepingSession> sessions = Collections.emptyList();
@@ -109,6 +112,7 @@ public class SleepTrackerAppTest {
         assertEquals(540.0, function.apply(sessions).getValue());
     }
 
+    // ==================== ТЕСТЫ ДЛЯ BadQualityCountFunction ====================
     @Test
     void testBadQualityCountWithEmptyList() {
         List<SleepingSession> sessions = Collections.emptyList();
@@ -137,7 +141,8 @@ public class SleepTrackerAppTest {
         BadQualityCountFunction function = new BadQualityCountFunction();
         assertEquals(2, function.apply(sessions).getValue());
     }
-   
+
+    // ==================== ТЕСТЫ ДЛЯ SleeplessNightsCountFunction ====================
     @Test
     void testSleeplessNightsWithEmptyList() {
         List<SleepingSession> sessions = Collections.emptyList();
@@ -147,7 +152,6 @@ public class SleepTrackerAppTest {
 
     @Test
     void testSleeplessNightsWithSessionStartingAfterMidnight() {
-       
         List<SleepingSession> sessions = Arrays.asList(
             new SleepingSession(LocalDateTime.of(2024, 1, 2, 1, 0), LocalDateTime.of(2024, 1, 2, 8, 0), SleepQuality.GOOD),
             new SleepingSession(LocalDateTime.of(2024, 1, 3, 23, 0), LocalDateTime.of(2024, 1, 4, 7, 0), SleepQuality.NORMAL)
@@ -158,7 +162,6 @@ public class SleepTrackerAppTest {
 
     @Test
     void testSleeplessNightsWithDifferentMonths() {
-       
         List<SleepingSession> sessions = Arrays.asList(
             new SleepingSession(LocalDateTime.of(2024, 1, 30, 22, 0), LocalDateTime.of(2024, 1, 31, 8, 0), SleepQuality.GOOD),
             new SleepingSession(LocalDateTime.of(2024, 2, 1, 23, 0), LocalDateTime.of(2024, 2, 2, 7, 0), SleepQuality.NORMAL),
@@ -218,7 +221,6 @@ public class SleepTrackerAppTest {
 
     @Test
     void testChronotypeTieBetweenOwlAndLark() {
-       
         List<SleepingSession> sessions = Arrays.asList(
             new SleepingSession(LocalDateTime.of(2024, 1, 1, 23, 30), LocalDateTime.of(2024, 1, 2, 9, 30), SleepQuality.GOOD),
             new SleepingSession(LocalDateTime.of(2024, 1, 2, 23, 45), LocalDateTime.of(2024, 1, 3, 10, 0), SleepQuality.GOOD),
@@ -231,7 +233,6 @@ public class SleepTrackerAppTest {
 
     @Test
     void testChronotypeTieBetweenOwlAndDove() {
-       
         List<SleepingSession> sessions = Arrays.asList(
             new SleepingSession(LocalDateTime.of(2024, 1, 1, 23, 30), LocalDateTime.of(2024, 1, 2, 9, 30), SleepQuality.GOOD),
             new SleepingSession(LocalDateTime.of(2024, 1, 2, 23, 45), LocalDateTime.of(2024, 1, 3, 10, 0), SleepQuality.GOOD),
@@ -244,7 +245,6 @@ public class SleepTrackerAppTest {
 
     @Test
     void testChronotypeIgnoresDaySessions() {
-       
         List<SleepingSession> sessions = Arrays.asList(
             new SleepingSession(LocalDateTime.of(2024, 1, 1, 23, 30), LocalDateTime.of(2024, 1, 2, 9, 30), SleepQuality.GOOD),
             new SleepingSession(LocalDateTime.of(2024, 1, 2, 14, 0), LocalDateTime.of(2024, 1, 2, 15, 0), SleepQuality.NORMAL),
