@@ -11,9 +11,6 @@ import java.util.TreeSet;
 
 public class SleeplessNightsCountFunction implements SleepAnalysisFunction<Integer> {
 
-    private static final LocalTime NIGHT_START = LocalTime.of(0, 0);
-    private static final LocalTime NIGHT_END = LocalTime.of(6, 0);
-
     @Override
     public SleepAnalysisResult<Integer> apply(List<SleepingSession> sessions) {
         if (sessions == null || sessions.isEmpty()) {
@@ -34,16 +31,14 @@ public class SleeplessNightsCountFunction implements SleepAnalysisFunction<Integ
         LocalDate lastNight = getNightDate(lastEnd);
 
         Set<LocalDate> allNights = new TreeSet<>();
-        LocalDate current = firstNight;
-        while (!current.isAfter(lastNight)) {
-            allNights.add(current);
-            current = current.plusDays(1);
+        for (LocalDate date = firstNight; !date.isAfter(lastNight); date = date.plusDays(1)) {
+            allNights.add(date);
         }
 
         Set<LocalDate> nightsWithSleep = new TreeSet<>();
         for (SleepingSession session : sessions) {
-            if (coversNight(session)) {
-                LocalDate nightDate = getSessionNightDate(session);
+            LocalDate nightDate = getNightDate(session.getStartTime());
+            if (hasNightSleep(session)) {
                 nightsWithSleep.add(nightDate);
             }
         }
@@ -59,20 +54,12 @@ public class SleeplessNightsCountFunction implements SleepAnalysisFunction<Integ
         return dateTime.toLocalDate();
     }
 
-    private boolean coversNight(SleepingSession session) {
-        LocalDateTime sessionStart = session.getStartTime();
-        LocalDateTime sessionEnd = session.getEndTime();
-        LocalDateTime nightStartForDay = sessionStart.toLocalDate().atTime(NIGHT_START);
-        LocalDateTime nightEndForDay = sessionStart.toLocalDate().atTime(NIGHT_END);
-        return sessionStart.isBefore(nightEndForDay) && sessionEnd.isAfter(nightStartForDay);
-    }
-
-    private LocalDate getSessionNightDate(SleepingSession session) {
-        LocalDateTime sessionStart = session.getStartTime();
-        LocalTime startTime = sessionStart.toLocalTime();
-        if (startTime.isBefore(NIGHT_END) || startTime.equals(NIGHT_START)) {
-            return sessionStart.toLocalDate().minusDays(1);
-        }
-        return sessionStart.toLocalDate();
+    private boolean hasNightSleep(SleepingSession session) {
+        LocalDateTime start = session.getStartTime();
+        LocalDateTime end = session.getEndTime();
+        LocalDate nightDate = getNightDate(start);
+        LocalDateTime nightStart = nightDate.atTime(0, 0);
+        LocalDateTime nightEnd = nightDate.atTime(6, 0);
+        return start.isBefore(nightEnd) && end.isAfter(nightStart);
     }
 }
