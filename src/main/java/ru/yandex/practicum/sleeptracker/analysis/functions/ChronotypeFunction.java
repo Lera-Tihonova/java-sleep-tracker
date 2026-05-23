@@ -3,7 +3,6 @@ package ru.yandex.practicum.sleeptracker.analysis.functions;
 import ru.yandex.practicum.sleeptracker.analysis.SleepAnalysisResult;
 import ru.yandex.practicum.sleeptracker.model.SleepingSession;
 import ru.yandex.practicum.sleeptracker.model.Chronotype;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
@@ -15,8 +14,6 @@ public class ChronotypeFunction implements SleepAnalysisFunction<String> {
     private static final LocalTime OWL_END = LocalTime.of(9, 0);
     private static final LocalTime LARK_START = LocalTime.of(22, 0);
     private static final LocalTime LARK_END = LocalTime.of(7, 0);
-    private static final LocalTime NIGHT_START = LocalTime.of(0, 0);
-    private static final LocalTime NIGHT_END = LocalTime.of(6, 0);
 
     @Override
     public SleepAnalysisResult<String> apply(List<SleepingSession> sessions) {
@@ -25,7 +22,11 @@ public class ChronotypeFunction implements SleepAnalysisFunction<String> {
         }
 
         List<SleepingSession> nightSessions = sessions.stream()
-            .filter(this::isNightSessionForChronotype)
+            .filter(session -> {
+                LocalTime start = session.getStartTime().toLocalTime();
+                LocalTime end = session.getEndTime().toLocalTime();
+                return start.isAfter(LocalTime.of(20, 0)) || end.isBefore(LocalTime.of(12, 0));
+            })
             .collect(Collectors.toList());
 
         if (nightSessions.isEmpty()) {
@@ -53,19 +54,13 @@ public class ChronotypeFunction implements SleepAnalysisFunction<String> {
         return new SleepAnalysisResult<>("Хронотип пользователя", resultChronotype.getRussianName());
     }
 
-    private boolean isNightSessionForChronotype(SleepingSession session) {
-        LocalDateTime start = session.getStartTime();
-        LocalDateTime end = session.getEndTime();
-        LocalDateTime nightStart = start.toLocalDate().atTime(NIGHT_START);
-        LocalDateTime nightEnd = start.toLocalDate().atTime(NIGHT_END);
-        return start.isBefore(nightEnd) && end.isAfter(nightStart);
-    }
-
     private Chronotype classifyNight(SleepingSession session) {
         LocalTime startTime = session.getStartTime().toLocalTime();
         LocalTime endTime = session.getEndTime().toLocalTime();
+
         boolean isOwl = startTime.isAfter(OWL_START) && endTime.isAfter(OWL_END);
         boolean isLark = startTime.isBefore(LARK_START) && endTime.isBefore(LARK_END);
+
         if (isOwl) return Chronotype.OWL;
         if (isLark) return Chronotype.LARK;
         return Chronotype.DOVE;

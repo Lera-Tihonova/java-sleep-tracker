@@ -39,13 +39,19 @@ public class SleeplessNightsCountFunction implements SleepAnalysisFunction<Integ
             .collect(Collectors.toSet());
 
         Set<LocalDate> nightsWithSleep = sessions.stream()
-            .filter(SleepingSession::isNightSession)
+            .filter(this::sessionCoversNight)
             .flatMap(session -> getNightsForSession(session))
             .collect(Collectors.toSet());
 
         long sleeplessNights = allNights.size() - nightsWithSleep.size();
 
         return new SleepAnalysisResult<>("Количество бессонных ночей", (int) sleeplessNights);
+    }
+
+    private boolean sessionCoversNight(SleepingSession session) {
+        LocalDateTime nightStart = session.getStartTime().toLocalDate().atStartOfDay();
+        LocalDateTime nightEnd = nightStart.plusHours(6);
+        return session.getStartTime().isBefore(nightEnd) && session.getEndTime().isAfter(nightStart);
     }
 
     private LocalDate getNightDate(LocalDateTime dateTime) {
