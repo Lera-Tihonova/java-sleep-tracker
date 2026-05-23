@@ -5,7 +5,6 @@ import ru.yandex.practicum.sleeptracker.model.SleepingSession;
 import java.util.List;
 
 public class MaxDurationFunction implements SleepAnalysisFunction<Long> {
-
     private static final String DESCRIPTION = "Максимальная продолжительность сессии (минуты)";
 
     @Override

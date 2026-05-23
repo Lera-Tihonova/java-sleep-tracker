@@ -5,7 +5,6 @@ import ru.yandex.practicum.sleeptracker.model.SleepingSession;
 import java.util.List;
 
 public class AvgDurationFunction implements SleepAnalysisFunction<Double> {
-
     private static final String DESCRIPTION = "Средняя продолжительность сессии (минуты)";
 
     @Override

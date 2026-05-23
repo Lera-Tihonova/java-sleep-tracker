@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class ChronotypeFunction implements SleepAnalysisFunction<String> {
-
+    private static final String DESCRIPTION = "Хронотип пользователя";
     private static final LocalTime OWL_START = LocalTime.of(23, 0);
     private static final LocalTime OWL_END = LocalTime.of(9, 0);
     private static final LocalTime LARK_START = LocalTime.of(22, 0);
@@ -18,7 +18,7 @@ public class ChronotypeFunction implements SleepAnalysisFunction<String> {
     @Override
     public SleepAnalysisResult<String> apply(List<SleepingSession> sessions) {
         if (sessions == null || sessions.isEmpty()) {
-            return new SleepAnalysisResult<>("Хронотип пользователя", Chronotype.DOVE.getRussianName());
+            return new SleepAnalysisResult<>(DESCRIPTION, Chronotype.DOVE.getRussianName());
         }
 
         List<SleepingSession> nightSessions = sessions.stream()
@@ -30,7 +30,7 @@ public class ChronotypeFunction implements SleepAnalysisFunction<String> {
             .collect(Collectors.toList());
 
         if (nightSessions.isEmpty()) {
-            return new SleepAnalysisResult<>("Хронотип пользователя", Chronotype.DOVE.getRussianName());
+            return new SleepAnalysisResult<>(DESCRIPTION, Chronotype.DOVE.getRussianName());
         }
 
         Map<Chronotype, Long> chronotypeCount = nightSessions.stream()
@@ -51,7 +51,7 @@ public class ChronotypeFunction implements SleepAnalysisFunction<String> {
             resultChronotype = Chronotype.DOVE;
         }
 
-        return new SleepAnalysisResult<>("Хронотип пользователя", resultChronotype.getRussianName());
+        return new SleepAnalysisResult<>(DESCRIPTION, resultChronotype.getRussianName());
     }
 
     private Chronotype classifyNight(SleepingSession session) {

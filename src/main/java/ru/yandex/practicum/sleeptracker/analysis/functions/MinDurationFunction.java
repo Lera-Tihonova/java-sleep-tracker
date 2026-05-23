@@ -5,7 +5,6 @@ import ru.yandex.practicum.sleeptracker.model.SleepingSession;
 import java.util.List;
 
 public class MinDurationFunction implements SleepAnalysisFunction<Long> {
-
     private static final String DESCRIPTION = "Минимальная продолжительность сессии (минуты)";
 
     @Override

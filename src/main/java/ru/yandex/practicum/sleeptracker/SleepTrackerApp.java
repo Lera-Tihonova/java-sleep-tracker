@@ -3,7 +3,6 @@ package ru.yandex.practicum.sleeptracker;
 import ru.yandex.practicum.sleeptracker.analysis.SleepAnalysisResult;
 import ru.yandex.practicum.sleeptracker.analysis.functions.*;
 import ru.yandex.practicum.sleeptracker.model.SleepingSession;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -58,7 +57,6 @@ public class SleepTrackerApp {
         Path path = Paths.get(filePath);
         List<String> lines = Files.readAllLines(path);
         List<SleepingSession> sessions = new ArrayList<>();
-
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yy HH:mm");
 
         for (String line : lines) {
@@ -76,7 +74,6 @@ public class SleepTrackerApp {
                 LocalDateTime startTime = LocalDateTime.parse(parts[0], formatter);
                 LocalDateTime endTime = LocalDateTime.parse(parts[1], formatter);
                 SleepingSession.SleepQuality quality = SleepingSession.SleepQuality.valueOf(parts[2]);
-
                 sessions.add(new SleepingSession(startTime, endTime, quality));
             } catch (Exception e) {
                 System.err.println("Ошибка при парсинге строки: " + line);
