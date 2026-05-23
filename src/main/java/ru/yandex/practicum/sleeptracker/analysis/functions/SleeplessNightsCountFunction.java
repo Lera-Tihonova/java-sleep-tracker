@@ -12,6 +12,9 @@ import java.util.stream.Stream;
 
 public class SleeplessNightsCountFunction implements SleepAnalysisFunction<Integer> {
 
+    private static final int NIGHT_END_HOUR = 6;
+    private static final int NOON_HOUR = 12;
+
     @Override
     public SleepAnalysisResult<Integer> apply(List<SleepingSession> sessions) {
         if (sessions.isEmpty()) {
@@ -47,7 +50,7 @@ public class SleeplessNightsCountFunction implements SleepAnalysisFunction<Integ
     }
 
     private LocalDate getNightDate(LocalDateTime dateTime) {
-        LocalDateTime noon = dateTime.toLocalDate().atTime(12, 0);
+        LocalDateTime noon = dateTime.toLocalDate().atTime(NOON_HOUR, 0);
         if (dateTime.isBefore(noon)) {
             return dateTime.toLocalDate().minusDays(1);
         } else {
@@ -62,7 +65,7 @@ public class SleeplessNightsCountFunction implements SleepAnalysisFunction<Integ
                 session.getEndTime().toLocalDate()) + 1)
             .filter(date -> {
                 LocalDateTime checkNightStart = date.atStartOfDay();
-                LocalDateTime checkNightEnd = checkNightStart.plusHours(6);
+                LocalDateTime checkNightEnd = checkNightStart.plusHours(NIGHT_END_HOUR);
                 return session.getStartTime().isBefore(checkNightEnd) &&
                        session.getEndTime().isAfter(checkNightStart);
             });

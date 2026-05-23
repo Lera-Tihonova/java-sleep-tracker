@@ -5,8 +5,14 @@ import ru.yandex.practicum.sleeptracker.model.SleepingSession;
 import java.util.List;
 
 public class SessionCountFunction implements SleepAnalysisFunction<Integer> {
+
+    private static final String DESCRIPTION = "Общее количество сессий сна";
+
     @Override
     public SleepAnalysisResult<Integer> apply(List<SleepingSession> sessions) {
-        return new SleepAnalysisResult<>("Общее количество сессий сна", sessions.size());
+        if (sessions == null || sessions.isEmpty()) {
+            return new SleepAnalysisResult<>(DESCRIPTION, 0);
+        }
+        return new SleepAnalysisResult<>(DESCRIPTION, sessions.size());
     }
 }

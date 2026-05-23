@@ -4,6 +4,9 @@ import java.time.LocalDateTime;
 import java.time.Duration;
 
 public class SleepingSession {
+
+    private static final int NIGHT_END_HOUR = 6;
+
     private final LocalDateTime startTime;
     private final LocalDateTime endTime;
     private final SleepQuality quality;
@@ -36,7 +39,7 @@ public class SleepingSession {
 
     public boolean isNightSession() {
         LocalDateTime nightStart = startTime.toLocalDate().atStartOfDay();
-        LocalDateTime nightEnd = nightStart.plusHours(6);
+        LocalDateTime nightEnd = nightStart.plusHours(NIGHT_END_HOUR);
         return (startTime.isBefore(nightEnd) && endTime.isAfter(nightStart));
     }
 }

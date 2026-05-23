@@ -2,6 +2,7 @@ package ru.yandex.practicum.sleeptracker.analysis.functions;
 
 import ru.yandex.practicum.sleeptracker.analysis.SleepAnalysisResult;
 import ru.yandex.practicum.sleeptracker.model.SleepingSession;
+import ru.yandex.practicum.sleeptracker.model.Chronotype;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
@@ -9,19 +10,12 @@ import java.util.stream.Collectors;
 
 public class ChronotypeFunction implements SleepAnalysisFunction<String> {
 
-    public enum Chronotype {
-        OWL("Сова"), LARK("Жаворонок"), DOVE("Голубь");
-
-        private final String russianName;
-
-        Chronotype(String russianName) {
-            this.russianName = russianName;
-        }
-
-        public String getRussianName() {
-            return russianName;
-        }
-    }
+    private static final LocalTime OWL_START_THRESHOLD = LocalTime.of(23, 0);
+    private static final LocalTime OWL_END_THRESHOLD = LocalTime.of(9, 0);
+    private static final LocalTime LARK_START_THRESHOLD = LocalTime.of(22, 0);
+    private static final LocalTime LARK_END_THRESHOLD = LocalTime.of(7, 0);
+    private static final LocalTime CHRONOTYPE_VALIDATION_START = LocalTime.of(23, 0);
+    private static final LocalTime CHRONOTYPE_VALIDATION_END = LocalTime.of(9, 0);
 
     @Override
     public SleepAnalysisResult<String> apply(List<SleepingSession> sessions) {
@@ -58,15 +52,15 @@ public class ChronotypeFunction implements SleepAnalysisFunction<String> {
     private boolean isValidForChronotype(SleepingSession session) {
         LocalTime startTime = session.getStartTime().toLocalTime();
         LocalTime endTime = session.getEndTime().toLocalTime();
-        return startTime.isBefore(LocalTime.of(23, 0)) || endTime.isAfter(LocalTime.of(9, 0));
+        return startTime.isBefore(CHRONOTYPE_VALIDATION_START) || endTime.isAfter(CHRONOTYPE_VALIDATION_END);
     }
 
     private Chronotype classifyNight(SleepingSession session) {
         LocalTime startTime = session.getStartTime().toLocalTime();
         LocalTime endTime = session.getEndTime().toLocalTime();
 
-        boolean isOwl = startTime.isAfter(LocalTime.of(23, 0)) && endTime.isAfter(LocalTime.of(9, 0));
-        boolean isLark = startTime.isBefore(LocalTime.of(22, 0)) && endTime.isBefore(LocalTime.of(7, 0));
+        boolean isOwl = startTime.isAfter(OWL_START_THRESHOLD) && endTime.isAfter(OWL_END_THRESHOLD);
+        boolean isLark = startTime.isBefore(LARK_START_THRESHOLD) && endTime.isBefore(LARK_END_THRESHOLD);
 
         if (isOwl) return Chronotype.OWL;
         if (isLark) return Chronotype.LARK;
