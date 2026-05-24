@@ -29,33 +29,31 @@ public class ChronotypeFunction implements SleepAnalysisFunction<String> {
             return new SleepAnalysisResult<>(DESCRIPTION, Chronotype.DOVE.getRussianName());
         }
 
-        Map<Chronotype, Long> chronotypeCount = nightSessions.stream()
-                .map(this::classifyNight)
+        Map<Chronotype, Long> counts = nightSessions.stream()
+                .map(s -> {
+                    LocalTime start = s.getStartTime().toLocalTime();
+                    LocalTime end = s.getEndTime().toLocalTime();
+                    if (start.isAfter(OWL_START) && end.isAfter(OWL_END)) {
+                        return Chronotype.OWL;
+                    }
+                    if (start.isBefore(LARK_START) && end.isBefore(LARK_END)) {
+                        return Chronotype.LARK;
+                    }
+                    return Chronotype.DOVE;
+                })
                 .collect(Collectors.groupingBy(c -> c, Collectors.counting()));
 
-        Chronotype result = chronotypeCount.entrySet().stream()
-                .max(Map.Entry.comparingByValue())
-                .map(Map.Entry::getKey)
-                .orElse(Chronotype.DOVE);
-
-        long maxCount = chronotypeCount.get(result);
-        if (chronotypeCount.values().stream().filter(c -> c == maxCount).count() > 1) {
-            result = Chronotype.DOVE;
+        Chronotype result = Chronotype.DOVE;
+        long maxCount = 0;
+        for (Map.Entry<Chronotype, Long> entry : counts.entrySet()) {
+            if (entry.getValue() > maxCount) {
+                maxCount = entry.getValue();
+                result = entry.getKey();
+            } else if (entry.getValue() == maxCount) {
+                result = Chronotype.DOVE;
+            }
         }
 
         return new SleepAnalysisResult<>(DESCRIPTION, result.getRussianName());
-    }
-
-    private Chronotype classifyNight(SleepingSession session) {
-        LocalTime start = session.getStartTime().toLocalTime();
-        LocalTime end = session.getEndTime().toLocalTime();
-
-        if (start.isAfter(OWL_START) && end.isAfter(OWL_END)) {
-            return Chronotype.OWL;
-        }
-        if (start.isBefore(LARK_START) && end.isBefore(LARK_END)) {
-            return Chronotype.LARK;
-        }
-        return Chronotype.DOVE;
     }
 }
