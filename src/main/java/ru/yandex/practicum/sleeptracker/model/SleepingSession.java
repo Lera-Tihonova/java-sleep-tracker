@@ -35,14 +35,12 @@ public class SleepingSession {
     }
 
     public boolean isNightSession() {
-        LocalDateTime nightStart = startTime.toLocalDate().atStartOfDay();
-        LocalDateTime nightEnd = nightStart.plusHours(6);
-        boolean coversThisNight = startTime.isBefore(nightEnd) && endTime.isAfter(nightStart);
-        if (coversThisNight) {
-            return true;
+        LocalDate nightDate = startTime.toLocalDate();
+        if (startTime.getHour() < 12) {
+            nightDate = nightDate.minusDays(1);
         }
-        LocalDateTime nextNightStart = startTime.toLocalDate().plusDays(1).atStartOfDay();
-        LocalDateTime nextNightEnd = nextNightStart.plusHours(6);
-        return startTime.isBefore(nextNightEnd) && endTime.isAfter(nextNightStart);
+        LocalDateTime nightStart = nightDate.atStartOfDay();
+        LocalDateTime nightEnd = nightStart.plusHours(6);
+        return startTime.isBefore(nightEnd) && endTime.isAfter(nightStart);
     }
 }
