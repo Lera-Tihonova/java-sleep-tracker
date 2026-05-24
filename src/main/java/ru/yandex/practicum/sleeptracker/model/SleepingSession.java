@@ -1,6 +1,5 @@
 package ru.yandex.practicum.sleeptracker.model;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Duration;
 
