@@ -7,7 +7,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
-import java.util.stream.Collectors;
 
 public class SleeplessNightsCountFunction implements SleepAnalysisFunction<Integer> {
     private static final String DESCRIPTION = "Количество бессонных ночей";
@@ -32,14 +31,19 @@ public class SleeplessNightsCountFunction implements SleepAnalysisFunction<Integ
         LocalDate lastNight = getNightDate(lastEnd);
 
         Set<LocalDate> allNights = new HashSet<>();
-        for (LocalDate date = firstNight; !date.isAfter(lastNight); date = date.plusDays(1)) {
-            allNights.add(date);
+        LocalDate current = firstNight;
+        while (!current.isAfter(lastNight)) {
+            allNights.add(current);
+            current = current.plusDays(1);
         }
 
-        Set<LocalDate> nightsWithSleep = sessions.stream()
-                .filter(this::isNightSession)
-                .map(session -> getNightDate(session.getStartTime()))
-                .collect(Collectors.toSet());
+        Set<LocalDate> nightsWithSleep = new HashSet<>();
+        for (SleepingSession session : sessions) {
+            LocalDate sessionNight = getNightDate(session.getStartTime());
+            if (coversNight(session, sessionNight)) {
+                nightsWithSleep.add(sessionNight);
+            }
+        }
 
         int sleeplessNights = allNights.size() - nightsWithSleep.size();
         return new SleepAnalysisResult<>(DESCRIPTION, sleeplessNights);
@@ -52,12 +56,11 @@ public class SleeplessNightsCountFunction implements SleepAnalysisFunction<Integ
         return dateTime.toLocalDate();
     }
 
-    private boolean isNightSession(SleepingSession session) {
-        LocalDateTime start = session.getStartTime();
-        LocalDateTime end = session.getEndTime();
-        LocalDate nightDate = getNightDate(start);
+    private boolean coversNight(SleepingSession session, LocalDate nightDate) {
         LocalDateTime nightStart = nightDate.atStartOfDay();
         LocalDateTime nightEnd = nightStart.plusHours(6);
-        return start.isBefore(nightEnd) && end.isAfter(nightStart);
+        LocalDateTime sessionStart = session.getStartTime();
+        LocalDateTime sessionEnd = session.getEndTime();
+        return sessionStart.isBefore(nightEnd) && sessionEnd.isAfter(nightStart);
     }
 }
