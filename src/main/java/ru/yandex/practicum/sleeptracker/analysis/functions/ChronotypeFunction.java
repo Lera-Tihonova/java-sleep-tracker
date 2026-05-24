@@ -3,6 +3,7 @@ package ru.yandex.practicum.sleeptracker.analysis.functions;
 import ru.yandex.practicum.sleeptracker.analysis.SleepAnalysisResult;
 import ru.yandex.practicum.sleeptracker.model.SleepingSession;
 import ru.yandex.practicum.sleeptracker.model.Chronotype;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
@@ -17,7 +18,9 @@ public class ChronotypeFunction implements SleepAnalysisFunction<String> {
 
     @Override
     public SleepAnalysisResult<String> apply(List<SleepingSession> sessions) {
-        if (sessions.isEmpty()) return new SleepAnalysisResult<>(DESCRIPTION, Chronotype.DOVE.getRussianName());
+        if (sessions.isEmpty()) {
+            return new SleepAnalysisResult<>(DESCRIPTION, Chronotype.DOVE.getRussianName());
+        }
 
         List<SleepingSession> nightSessions = sessions.stream()
                 .filter(s -> {
@@ -29,14 +32,20 @@ public class ChronotypeFunction implements SleepAnalysisFunction<String> {
                 })
                 .collect(Collectors.toList());
 
-        if (nightSessions.isEmpty()) return new SleepAnalysisResult<>(DESCRIPTION, Chronotype.DOVE.getRussianName());
+        if (nightSessions.isEmpty()) {
+            return new SleepAnalysisResult<>(DESCRIPTION, Chronotype.DOVE.getRussianName());
+        }
 
         Map<Chronotype, Long> counts = nightSessions.stream()
                 .map(s -> {
                     LocalTime start = s.getStartTime().toLocalTime();
                     LocalTime end = s.getEndTime().toLocalTime();
-                    if (start.isAfter(OWL_START) && end.isAfter(OWL_END)) return Chronotype.OWL;
-                    if (start.isBefore(LARK_START) && end.isBefore(LARK_END)) return Chronotype.LARK;
+                    if (start.isAfter(OWL_START) && end.isAfter(OWL_END)) {
+                        return Chronotype.OWL;
+                    }
+                    if (start.isBefore(LARK_START) && end.isBefore(LARK_END)) {
+                        return Chronotype.LARK;
+                    }
                     return Chronotype.DOVE;
                 })
                 .collect(Collectors.groupingBy(c -> c, Collectors.counting()));
