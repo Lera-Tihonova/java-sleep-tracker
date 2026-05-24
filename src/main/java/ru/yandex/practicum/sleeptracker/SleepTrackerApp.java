@@ -1,11 +1,9 @@
 package ru.yandex.practicum.sleeptracker;
 
-import ru.yandex.practicum.sleeptracker.analysis.SleepAnalysisResult;
 import ru.yandex.practicum.sleeptracker.analysis.functions.*;
 import ru.yandex.practicum.sleeptracker.model.SleepingSession;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
