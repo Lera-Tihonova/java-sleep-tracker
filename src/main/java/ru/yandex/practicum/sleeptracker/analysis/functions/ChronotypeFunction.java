@@ -3,7 +3,6 @@ package ru.yandex.practicum.sleeptracker.analysis.functions;
 import ru.yandex.practicum.sleeptracker.analysis.SleepAnalysisResult;
 import ru.yandex.practicum.sleeptracker.model.SleepingSession;
 import ru.yandex.practicum.sleeptracker.model.Chronotype;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
@@ -11,10 +10,6 @@ import java.util.stream.Collectors;
 
 public class ChronotypeFunction implements SleepAnalysisFunction<String> {
     private static final String DESCRIPTION = "Хронотип пользователя";
-    private static final LocalTime OWL_START = LocalTime.of(23, 0);
-    private static final LocalTime OWL_END = LocalTime.of(9, 0);
-    private static final LocalTime LARK_START = LocalTime.of(22, 0);
-    private static final LocalTime LARK_END = LocalTime.of(7, 0);
 
     @Override
     public SleepAnalysisResult<String> apply(List<SleepingSession> sessions) {
@@ -23,13 +18,7 @@ public class ChronotypeFunction implements SleepAnalysisFunction<String> {
         }
 
         List<SleepingSession> nightSessions = sessions.stream()
-                .filter(s -> {
-                    LocalDateTime start = s.getStartTime();
-                    LocalDateTime end = s.getEndTime();
-                    LocalDateTime nightStart = start.toLocalDate().atStartOfDay();
-                    LocalDateTime nightEnd = nightStart.plusHours(6);
-                    return start.isBefore(nightEnd) && end.isAfter(nightStart);
-                })
+                .filter(SleepingSession::isNightSession)
                 .collect(Collectors.toList());
 
         if (nightSessions.isEmpty()) {
@@ -40,10 +29,10 @@ public class ChronotypeFunction implements SleepAnalysisFunction<String> {
                 .map(s -> {
                     LocalTime start = s.getStartTime().toLocalTime();
                     LocalTime end = s.getEndTime().toLocalTime();
-                    if (start.isAfter(OWL_START) && end.isAfter(OWL_END)) {
+                    if (start.isAfter(LocalTime.of(23, 0)) && end.isAfter(LocalTime.of(9, 0))) {
                         return Chronotype.OWL;
                     }
-                    if (start.isBefore(LARK_START) && end.isBefore(LARK_END)) {
+                    if (start.isBefore(LocalTime.of(22, 0)) && end.isBefore(LocalTime.of(7, 0))) {
                         return Chronotype.LARK;
                     }
                     return Chronotype.DOVE;
@@ -52,13 +41,18 @@ public class ChronotypeFunction implements SleepAnalysisFunction<String> {
 
         Chronotype result = Chronotype.DOVE;
         long max = 0;
+        boolean tie = false;
         for (Map.Entry<Chronotype, Long> e : counts.entrySet()) {
             if (e.getValue() > max) {
                 max = e.getValue();
                 result = e.getKey();
-            } else if (e.getValue() == max) {
-                result = Chronotype.DOVE;
+                tie = false;
+            } else if (e.getValue().equals(max)) {
+                tie = true;
             }
+        }
+        if (tie) {
+            result = Chronotype.DOVE;
         }
 
         return new SleepAnalysisResult<>(DESCRIPTION, result.getRussianName());

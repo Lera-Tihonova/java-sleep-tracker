@@ -11,32 +11,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SleepTrackerApp {
-    private static final List<SleepAnalysisFunction<?>> FUNCTIONS = List.of(
-        new SessionCountFunction(),
-        new MinDurationFunction(),
-        new MaxDurationFunction(),
-        new AvgDurationFunction(),
-        new BadQualityCountFunction(),
-        new SleeplessNightsCountFunction(),
-        new ChronotypeFunction()
-    );
-
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         if (args.length == 0) {
             System.err.println("Пожалуйста, укажите путь к файлу с логом сна");
             System.exit(1);
         }
-        try {
-            List<SleepingSession> sessions = loadSessions(args[0]);
-            System.out.println("Загружено сессий сна: " + sessions.size());
-            System.out.println("=====================================");
-            for (SleepAnalysisFunction<?> f : FUNCTIONS) {
-                System.out.println(f.apply(sessions));
-            }
-        } catch (Exception e) {
-            System.err.println("Ошибка: " + e.getMessage());
-            System.exit(1);
-        }
+        List<SleepingSession> sessions = loadSessions(args[0]);
+        System.out.println("Загружено сессий сна: " + sessions.size());
+        System.out.println("=====================================");
+        System.out.println(new SessionCountFunction().apply(sessions));
+        System.out.println(new MinDurationFunction().apply(sessions));
+        System.out.println(new MaxDurationFunction().apply(sessions));
+        System.out.println(new AvgDurationFunction().apply(sessions));
+        System.out.println(new BadQualityCountFunction().apply(sessions));
+        System.out.println(new SleeplessNightsCountFunction().apply(sessions));
+        System.out.println(new ChronotypeFunction().apply(sessions));
     }
 
     private static List<SleepingSession> loadSessions(String path) throws IOException {
