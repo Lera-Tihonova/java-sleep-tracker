@@ -13,73 +13,48 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SleepTrackerApp {
-
-    private static final List<SleepAnalysisFunction<?>> analysisFunctions = new ArrayList<>();
-
-    static {
-        analysisFunctions.add(new SessionCountFunction());
-        analysisFunctions.add(new MinDurationFunction());
-        analysisFunctions.add(new MaxDurationFunction());
-        analysisFunctions.add(new AvgDurationFunction());
-        analysisFunctions.add(new BadQualityCountFunction());
-        analysisFunctions.add(new SleeplessNightsCountFunction());
-        analysisFunctions.add(new ChronotypeFunction());
-    }
+    private static final List<SleepAnalysisFunction<?>> FUNCTIONS = List.of(
+        new SessionCountFunction(),
+        new MinDurationFunction(),
+        new MaxDurationFunction(),
+        new AvgDurationFunction(),
+        new BadQualityCountFunction(),
+        new SleeplessNightsCountFunction(),
+        new ChronotypeFunction()
+    );
 
     public static void main(String[] args) {
         if (args.length == 0) {
             System.err.println("Пожалуйста, укажите путь к файлу с логом сна");
             System.exit(1);
         }
-
-        String filePath = args[0];
-
         try {
-            List<SleepingSession> sessions = loadSessionsFromFile(filePath);
+            List<SleepingSession> sessions = loadSessions(args[0]);
             System.out.println("Загружено сессий сна: " + sessions.size());
             System.out.println("=====================================");
-
-            for (SleepAnalysisFunction<?> function : analysisFunctions) {
-                SleepAnalysisResult<?> result = function.apply(sessions);
-                System.out.println(result);
+            for (SleepAnalysisFunction<?> f : FUNCTIONS) {
+                System.out.println(f.apply(sessions));
             }
-
-        } catch (IOException e) {
-            System.err.println("Ошибка при чтении файла: " + e.getMessage());
-            System.exit(1);
         } catch (Exception e) {
-            System.err.println("Ошибка при обработке данных: " + e.getMessage());
+            System.err.println("Ошибка: " + e.getMessage());
             System.exit(1);
         }
     }
 
-    private static List<SleepingSession> loadSessionsFromFile(String filePath) throws IOException {
-        Path path = Paths.get(filePath);
-        List<String> lines = Files.readAllLines(path);
+    private static List<SleepingSession> loadSessions(String path) throws IOException {
+        List<String> lines = Files.readAllLines(Paths.get(path));
         List<SleepingSession> sessions = new ArrayList<>();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yy HH:mm");
-
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd.MM.yy HH:mm");
         for (String line : lines) {
-            if (line.trim().isEmpty()) {
-                continue;
-            }
-
+            if (line.isBlank()) continue;
             String[] parts = line.split(";");
-            if (parts.length != 3) {
-                System.err.println("Неверный формат строки: " + line);
-                continue;
-            }
-
-            try {
-                LocalDateTime startTime = LocalDateTime.parse(parts[0], formatter);
-                LocalDateTime endTime = LocalDateTime.parse(parts[1], formatter);
-                SleepingSession.SleepQuality quality = SleepingSession.SleepQuality.valueOf(parts[2]);
-                sessions.add(new SleepingSession(startTime, endTime, quality));
-            } catch (Exception e) {
-                System.err.println("Ошибка при парсинге строки: " + line);
-            }
+            if (parts.length != 3) continue;
+            sessions.add(new SleepingSession(
+                LocalDateTime.parse(parts[0], fmt),
+                LocalDateTime.parse(parts[1], fmt),
+                SleepingSession.SleepQuality.valueOf(parts[2])
+            ));
         }
-
         return sessions;
     }
 }

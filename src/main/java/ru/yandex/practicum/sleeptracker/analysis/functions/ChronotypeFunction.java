@@ -17,39 +17,37 @@ public class ChronotypeFunction implements SleepAnalysisFunction<String> {
 
     @Override
     public SleepAnalysisResult<String> apply(List<SleepingSession> sessions) {
-        if (sessions.isEmpty()) {
-            return new SleepAnalysisResult<>(DESCRIPTION, Chronotype.DOVE.getRussianName());
-        }
+        if (sessions.isEmpty()) return new SleepAnalysisResult<>(DESCRIPTION, Chronotype.DOVE.getRussianName());
 
         List<SleepingSession> nightSessions = sessions.stream()
-                .filter(SleepingSession::isNightSession)
+                .filter(s -> {
+                    LocalDateTime start = s.getStartTime();
+                    LocalDateTime end = s.getEndTime();
+                    LocalDateTime nightStart = start.toLocalDate().atStartOfDay();
+                    LocalDateTime nightEnd = nightStart.plusHours(6);
+                    return start.isBefore(nightEnd) && end.isAfter(nightStart);
+                })
                 .collect(Collectors.toList());
 
-        if (nightSessions.isEmpty()) {
-            return new SleepAnalysisResult<>(DESCRIPTION, Chronotype.DOVE.getRussianName());
-        }
+        if (nightSessions.isEmpty()) return new SleepAnalysisResult<>(DESCRIPTION, Chronotype.DOVE.getRussianName());
 
         Map<Chronotype, Long> counts = nightSessions.stream()
                 .map(s -> {
                     LocalTime start = s.getStartTime().toLocalTime();
                     LocalTime end = s.getEndTime().toLocalTime();
-                    if (start.isAfter(OWL_START) && end.isAfter(OWL_END)) {
-                        return Chronotype.OWL;
-                    }
-                    if (start.isBefore(LARK_START) && end.isBefore(LARK_END)) {
-                        return Chronotype.LARK;
-                    }
+                    if (start.isAfter(OWL_START) && end.isAfter(OWL_END)) return Chronotype.OWL;
+                    if (start.isBefore(LARK_START) && end.isBefore(LARK_END)) return Chronotype.LARK;
                     return Chronotype.DOVE;
                 })
                 .collect(Collectors.groupingBy(c -> c, Collectors.counting()));
 
         Chronotype result = Chronotype.DOVE;
-        long maxCount = 0;
-        for (Map.Entry<Chronotype, Long> entry : counts.entrySet()) {
-            if (entry.getValue() > maxCount) {
-                maxCount = entry.getValue();
-                result = entry.getKey();
-            } else if (entry.getValue() == maxCount) {
+        long max = 0;
+        for (Map.Entry<Chronotype, Long> e : counts.entrySet()) {
+            if (e.getValue() > max) {
+                max = e.getValue();
+                result = e.getKey();
+            } else if (e.getValue() == max) {
                 result = Chronotype.DOVE;
             }
         }

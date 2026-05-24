@@ -9,10 +9,7 @@ public class MinDurationFunction implements SleepAnalysisFunction<Long> {
 
     @Override
     public SleepAnalysisResult<Long> apply(List<SleepingSession> sessions) {
-        long minDuration = sessions.stream()
-                .map(SleepingSession::getDurationMinutes)
-                .min(Long::compareTo)
-                .orElse(0L);
-        return new SleepAnalysisResult<>(DESCRIPTION, minDuration);
+        long min = sessions.stream().mapToLong(SleepingSession::getDurationMinutes).min().orElse(0);
+        return new SleepAnalysisResult<>(DESCRIPTION, min);
     }
 }

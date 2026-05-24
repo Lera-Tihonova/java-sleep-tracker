@@ -9,10 +9,7 @@ public class MaxDurationFunction implements SleepAnalysisFunction<Long> {
 
     @Override
     public SleepAnalysisResult<Long> apply(List<SleepingSession> sessions) {
-        long maxDuration = sessions.stream()
-                .map(SleepingSession::getDurationMinutes)
-                .max(Long::compareTo)
-                .orElse(0L);
-        return new SleepAnalysisResult<>(DESCRIPTION, maxDuration);
+        long max = sessions.stream().mapToLong(SleepingSession::getDurationMinutes).max().orElse(0);
+        return new SleepAnalysisResult<>(DESCRIPTION, max);
     }
 }
