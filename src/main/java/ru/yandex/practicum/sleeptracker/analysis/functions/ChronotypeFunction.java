@@ -3,6 +3,8 @@ package ru.yandex.practicum.sleeptracker.analysis.functions;
 import ru.yandex.practicum.sleeptracker.analysis.SleepAnalysisResult;
 import ru.yandex.practicum.sleeptracker.model.SleepingSession;
 import ru.yandex.practicum.sleeptracker.model.Chronotype;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
@@ -22,7 +24,17 @@ public class ChronotypeFunction implements SleepAnalysisFunction<String> {
         }
 
         List<SleepingSession> nightSessions = sessions.stream()
-                .filter(SleepingSession::isNightSession) // <-- используем метод из модели
+                .filter(session -> {
+                    LocalDateTime start = session.getStartTime();
+                    LocalDateTime end = session.getEndTime();
+                    LocalDate nightDate = start.toLocalDate();
+                    if (start.getHour() < 6) {
+                        nightDate = nightDate.minusDays(1);
+                    }
+                    LocalDateTime nightStart = nightDate.atStartOfDay();
+                    LocalDateTime nightEnd = nightStart.plusHours(6);
+                    return start.isBefore(nightEnd) && end.isAfter(nightStart);
+                })
                 .collect(Collectors.toList());
 
         if (nightSessions.isEmpty()) {
@@ -50,11 +62,12 @@ public class ChronotypeFunction implements SleepAnalysisFunction<String> {
         LocalTime start = session.getStartTime().toLocalTime();
         LocalTime end = session.getEndTime().toLocalTime();
 
-        boolean isOwl = start.isAfter(OWL_START) && end.isAfter(OWL_END);
-        boolean isLark = start.isBefore(LARK_START) && end.isBefore(LARK_END);
-
-        if (isOwl) return Chronotype.OWL;
-        if (isLark) return Chronotype.LARK;
+        if (start.isAfter(OWL_START) && end.isAfter(OWL_END)) {
+            return Chronotype.OWL;
+        }
+        if (start.isBefore(LARK_START) && end.isBefore(LARK_END)) {
+            return Chronotype.LARK;
+        }
         return Chronotype.DOVE;
     }
 }

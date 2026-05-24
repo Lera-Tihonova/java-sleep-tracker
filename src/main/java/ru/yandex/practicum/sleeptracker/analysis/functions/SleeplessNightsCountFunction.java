@@ -8,7 +8,6 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
-import java.util.stream.Collectors;
 
 public class SleeplessNightsCountFunction implements SleepAnalysisFunction<Integer> {
     private static final String DESCRIPTION = "Количество бессонных ночей";
@@ -37,17 +36,24 @@ public class SleeplessNightsCountFunction implements SleepAnalysisFunction<Integ
             allNights.add(date);
         }
 
-        Set<LocalDate> nightsWithSleep = sessions.stream()
-                .filter(SleepingSession::isNightSession) // <-- используем метод из модели
-                .map(session -> getNightDate(session.getStartTime()))
-                .collect(Collectors.toSet());
+        Set<LocalDate> nightsWithSleep = new HashSet<>();
+        for (SleepingSession session : sessions) {
+            LocalDateTime start = session.getStartTime();
+            LocalDateTime end = session.getEndTime();
+            LocalDate nightDate = getNightDate(start);
+            LocalDateTime nightStart = nightDate.atStartOfDay();
+            LocalDateTime nightEnd = nightStart.plusHours(6);
+            if (start.isBefore(nightEnd) && end.isAfter(nightStart)) {
+                nightsWithSleep.add(nightDate);
+            }
+        }
 
         int sleeplessNights = allNights.size() - nightsWithSleep.size();
         return new SleepAnalysisResult<>(DESCRIPTION, sleeplessNights);
     }
 
     private LocalDate getNightDate(LocalDateTime dateTime) {
-        if (dateTime.toLocalTime().isBefore(LocalTime.NOON)) {
+        if (dateTime.getHour() < 12) {
             return dateTime.toLocalDate().minusDays(1);
         }
         return dateTime.toLocalDate();
