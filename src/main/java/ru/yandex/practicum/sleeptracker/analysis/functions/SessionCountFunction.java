@@ -9,9 +9,6 @@ public class SessionCountFunction implements SleepAnalysisFunction<Integer> {
 
     @Override
     public SleepAnalysisResult<Integer> apply(List<SleepingSession> sessions) {
-        if (sessions == null) {
-            return new SleepAnalysisResult<>(DESCRIPTION, 0);
-        }
         return new SleepAnalysisResult<>(DESCRIPTION, sessions.size());
     }
 }

@@ -33,10 +33,4 @@ public class SleepingSession {
     public long getDurationMinutes() {
         return Duration.between(startTime, endTime).toMinutes();
     }
-
-    public boolean isNightSession() {
-        LocalDateTime nightStart = startTime.toLocalDate().atStartOfDay();
-        LocalDateTime nightEnd = nightStart.plusHours(6);
-        return startTime.isBefore(nightEnd) && endTime.isAfter(nightStart);
-    }
 }

@@ -9,12 +9,9 @@ public class BadQualityCountFunction implements SleepAnalysisFunction<Integer> {
 
     @Override
     public SleepAnalysisResult<Integer> apply(List<SleepingSession> sessions) {
-        if (sessions == null || sessions.isEmpty()) {
-            return new SleepAnalysisResult<>(DESCRIPTION, 0);
-        }
         long badCount = sessions.stream()
-            .filter(session -> session.getQuality() == SleepingSession.SleepQuality.BAD)
-            .count();
+                .filter(session -> session.getQuality() == SleepingSession.SleepQuality.BAD)
+                .count();
         return new SleepAnalysisResult<>(DESCRIPTION, (int) badCount);
     }
 }

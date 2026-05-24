@@ -17,52 +17,55 @@ public class ChronotypeFunction implements SleepAnalysisFunction<String> {
 
     @Override
     public SleepAnalysisResult<String> apply(List<SleepingSession> sessions) {
-        if (sessions == null || sessions.isEmpty()) {
+        if (sessions.isEmpty()) {
             return new SleepAnalysisResult<>(DESCRIPTION, Chronotype.DOVE.getRussianName());
         }
 
         List<SleepingSession> nightSessions = sessions.stream()
-            .filter(session -> {
-                LocalTime start = session.getStartTime().toLocalTime();
-                LocalTime end = session.getEndTime().toLocalTime();
-                return start.isAfter(LocalTime.of(20, 0)) || end.isBefore(LocalTime.of(12, 0));
-            })
-            .collect(Collectors.toList());
+                .filter(session -> {
+                    LocalDateTime start = session.getStartTime();
+                    LocalDateTime end = session.getEndTime();
+                    LocalDate nightDate = start.toLocalDate();
+                    if (start.getHour() < 12) {
+                        nightDate = nightDate.minusDays(1);
+                    }
+                    LocalDateTime nightStart = nightDate.atStartOfDay();
+                    LocalDateTime nightEnd = nightStart.plusHours(6);
+                    return start.isBefore(nightEnd) && end.isAfter(nightStart);
+                })
+                .collect(Collectors.toList());
 
         if (nightSessions.isEmpty()) {
             return new SleepAnalysisResult<>(DESCRIPTION, Chronotype.DOVE.getRussianName());
         }
 
         Map<Chronotype, Long> chronotypeCount = nightSessions.stream()
-            .map(this::classifyNight)
-            .collect(Collectors.groupingBy(c -> c, Collectors.counting()));
+                .map(this::classifyNight)
+                .collect(Collectors.groupingBy(c -> c, Collectors.counting()));
 
-        Chronotype resultChronotype = chronotypeCount.entrySet().stream()
-            .max(Map.Entry.comparingByValue())
-            .map(Map.Entry::getKey)
-            .orElse(Chronotype.DOVE);
+        Chronotype result = chronotypeCount.entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse(Chronotype.DOVE);
 
-        long maxCount = chronotypeCount.getOrDefault(resultChronotype, 0L);
-        boolean hasTie = chronotypeCount.values().stream()
-            .filter(count -> count.equals(maxCount))
-            .count() > 1;
-
-        if (hasTie) {
-            resultChronotype = Chronotype.DOVE;
+        long maxCount = chronotypeCount.get(result);
+        if (chronotypeCount.values().stream().filter(c -> c == maxCount).count() > 1) {
+            result = Chronotype.DOVE;
         }
 
-        return new SleepAnalysisResult<>(DESCRIPTION, resultChronotype.getRussianName());
+        return new SleepAnalysisResult<>(DESCRIPTION, result.getRussianName());
     }
 
     private Chronotype classifyNight(SleepingSession session) {
-        LocalTime startTime = session.getStartTime().toLocalTime();
-        LocalTime endTime = session.getEndTime().toLocalTime();
+        LocalTime start = session.getStartTime().toLocalTime();
+        LocalTime end = session.getEndTime().toLocalTime();
 
-        boolean isOwl = startTime.isAfter(OWL_START) && endTime.isAfter(OWL_END);
-        boolean isLark = startTime.isBefore(LARK_START) && endTime.isBefore(LARK_END);
-
-        if (isOwl) return Chronotype.OWL;
-        if (isLark) return Chronotype.LARK;
+        if (start.isAfter(OWL_START) && end.isAfter(OWL_END)) {
+            return Chronotype.OWL;
+        }
+        if (start.isBefore(LARK_START) && end.isBefore(LARK_END)) {
+            return Chronotype.LARK;
+        }
         return Chronotype.DOVE;
     }
 }
