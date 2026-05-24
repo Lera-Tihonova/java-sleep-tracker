@@ -36,11 +36,7 @@ public class SleepingSession {
     }
 
     public boolean isNightSession() {
-        LocalDate nightDate = startTime.toLocalDate();
-        if (startTime.getHour() < 12) {
-            nightDate = nightDate.minusDays(1);
-        }
-        LocalDateTime nightStart = nightDate.atStartOfDay();
+        LocalDateTime nightStart = startTime.toLocalDate().atStartOfDay();
         LocalDateTime nightEnd = nightStart.plusHours(6);
         return startTime.isBefore(nightEnd) && endTime.isAfter(nightStart);
     }
