@@ -3,8 +3,6 @@ package ru.yandex.practicum.sleeptracker.analysis.functions;
 import ru.yandex.practicum.sleeptracker.analysis.SleepAnalysisResult;
 import ru.yandex.practicum.sleeptracker.model.SleepingSession;
 import ru.yandex.practicum.sleeptracker.model.Chronotype;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
@@ -19,22 +17,12 @@ public class ChronotypeFunction implements SleepAnalysisFunction<String> {
 
     @Override
     public SleepAnalysisResult<String> apply(List<SleepingSession> sessions) {
-        if (sessions.isEmpty()) {
+        if (sessions == null || sessions.isEmpty()) {
             return new SleepAnalysisResult<>(DESCRIPTION, Chronotype.DOVE.getRussianName());
         }
 
         List<SleepingSession> nightSessions = sessions.stream()
-                .filter(session -> {
-                    LocalDateTime start = session.getStartTime();
-                    LocalDateTime end = session.getEndTime();
-                    LocalDate nightDate = start.toLocalDate();
-                    if (start.getHour() < 12) {
-                        nightDate = nightDate.minusDays(1);
-                    }
-                    LocalDateTime nightStart = nightDate.atStartOfDay();
-                    LocalDateTime nightEnd = nightStart.plusHours(6);
-                    return start.isBefore(nightEnd) && end.isAfter(nightStart);
-                })
+                .filter(SleepingSession::isNightSession)
                 .collect(Collectors.toList());
 
         if (nightSessions.isEmpty()) {
@@ -62,10 +50,13 @@ public class ChronotypeFunction implements SleepAnalysisFunction<String> {
         LocalTime start = session.getStartTime().toLocalTime();
         LocalTime end = session.getEndTime().toLocalTime();
 
-        if (start.isAfter(OWL_START) && end.isAfter(OWL_END)) {
+        boolean isOwl = start.isAfter(OWL_START) && end.isAfter(OWL_END);
+        boolean isLark = start.isBefore(LARK_START) && end.isBefore(LARK_END);
+
+        if (isOwl) {
             return Chronotype.OWL;
         }
-        if (start.isBefore(LARK_START) && end.isBefore(LARK_END)) {
+        if (isLark) {
             return Chronotype.LARK;
         }
         return Chronotype.DOVE;

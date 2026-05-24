@@ -38,14 +38,7 @@ public class SleeplessNightsCountFunction implements SleepAnalysisFunction<Integ
         }
 
         Set<LocalDate> nightsWithSleep = sessions.stream()
-                .filter(session -> {
-                    LocalDateTime start = session.getStartTime();
-                    LocalDateTime end = session.getEndTime();
-                    LocalDate nightDate = getNightDate(start);
-                    LocalDateTime nightStart = nightDate.atStartOfDay();
-                    LocalDateTime nightEnd = nightStart.plusHours(6);
-                    return start.isBefore(nightEnd) && end.isAfter(nightStart);
-                })
+                .filter(SleepingSession::isNightSession)
                 .map(session -> getNightDate(session.getStartTime()))
                 .collect(Collectors.toSet());
 
