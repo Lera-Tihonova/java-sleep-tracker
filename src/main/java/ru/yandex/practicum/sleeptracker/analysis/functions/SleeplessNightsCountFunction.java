@@ -4,10 +4,10 @@ import ru.yandex.practicum.sleeptracker.analysis.SleepAnalysisResult;
 import ru.yandex.practicum.sleeptracker.model.SleepingSession;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.HashSet;
 
 public class SleeplessNightsCountFunction implements SleepAnalysisFunction<Integer> {
     private static final String DESCRIPTION = "Количество бессонных ночей";
@@ -18,56 +18,39 @@ public class SleeplessNightsCountFunction implements SleepAnalysisFunction<Integ
             return new SleepAnalysisResult<>(DESCRIPTION, 0);
         }
 
-        LocalDateTime firstStart = sessions.stream()
-                .map(SleepingSession::getStartTime)
-                .min(LocalDateTime::compareTo)
-                .get();
+        Set<LocalDate> nightsWithSleep = new HashSet<>();
 
-        LocalDateTime lastEnd = sessions.stream()
-                .map(SleepingSession::getEndTime)
-                .max(LocalDateTime::compareTo)
-                .get();
+        for (SleepingSession session : sessions) {
+            LocalDateTime start = session.getStartTime();
+            LocalDateTime end = session.getEndTime();
 
-        LocalDate firstNight = getStartNight(firstStart);
-        LocalDate lastNight = getEndNight(lastEnd);
+            LocalDate nightDate = getNightDate(start);
+            LocalDateTime nightStart = nightDate.atStartOfDay();
+            LocalDateTime nightEnd = nightStart.plusHours(6);
 
-        Set<LocalDate> allNights = Stream.iterate(firstNight, d -> d.plusDays(1))
-                .limit(lastNight.toEpochDay() - firstNight.toEpochDay() + 1)
-                .collect(Collectors.toSet());
+            if (start.isBefore(nightEnd) && end.isAfter(nightStart)) {
+                nightsWithSleep.add(nightDate);
+            }
+        }
 
-        Set<LocalDate> nightsWithSleep = sessions.stream()
-                .flatMap(this::findCoveredNights)
-                .collect(Collectors.toSet());
+        if (nightsWithSleep.isEmpty()) {
+            return new SleepAnalysisResult<>(DESCRIPTION, 0);
+        }
 
-        int sleeplessNights = allNights.size() - nightsWithSleep.size();
+        LocalDate firstNight = nightsWithSleep.stream().min(LocalDate::compareTo).get();
+        LocalDate lastNight = nightsWithSleep.stream().max(LocalDate::compareTo).get();
+
+        long totalNights = lastNight.toEpochDay() - firstNight.toEpochDay() + 1;
+        int sleeplessNights = (int) (totalNights - nightsWithSleep.size());
+
         return new SleepAnalysisResult<>(DESCRIPTION, sleeplessNights);
     }
 
-    private LocalDate getStartNight(LocalDateTime dateTime) {
-        if (dateTime.getHour() < 12) {
+    private LocalDate getNightDate(LocalDateTime dateTime) {
+        LocalTime time = dateTime.toLocalTime();
+        if (time.isBefore(LocalTime.of(12, 0))) {
             return dateTime.toLocalDate().minusDays(1);
         }
         return dateTime.toLocalDate();
-    }
-
-    private LocalDate getEndNight(LocalDateTime dateTime) {
-        if (dateTime.getHour() < 12 || (dateTime.getHour() == 12 && dateTime.getMinute() == 0)) {
-            return dateTime.toLocalDate().minusDays(1);
-        }
-        return dateTime.toLocalDate();
-    }
-
-    private Stream<LocalDate> findCoveredNights(SleepingSession session) {
-        LocalDateTime start = session.getStartTime();
-        LocalDateTime end = session.getEndTime();
-        LocalDate startNight = getStartNight(start).minusDays(1);
-        LocalDate endNight = getEndNight(end).plusDays(1);
-        return Stream.iterate(startNight, d -> d.plusDays(1))
-                .limit(endNight.toEpochDay() - startNight.toEpochDay() + 1)
-                .filter(date -> {
-                    LocalDateTime nightStart = date.atStartOfDay();
-                    LocalDateTime nightEnd = nightStart.plusHours(6);
-                    return start.isBefore(nightEnd) && end.isAfter(nightStart);
-                });
     }
 }
