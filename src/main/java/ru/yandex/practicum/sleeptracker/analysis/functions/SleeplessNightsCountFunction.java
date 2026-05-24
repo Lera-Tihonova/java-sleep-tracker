@@ -8,6 +8,7 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.stream.Collectors;
 
 public class SleeplessNightsCountFunction implements SleepAnalysisFunction<Integer> {
     private static final String DESCRIPTION = "Количество бессонных ночей";
@@ -18,39 +19,46 @@ public class SleeplessNightsCountFunction implements SleepAnalysisFunction<Integ
             return new SleepAnalysisResult<>(DESCRIPTION, 0);
         }
 
-        Set<LocalDate> nightsWithSleep = new HashSet<>();
+        LocalDateTime firstStart = sessions.stream()
+                .map(SleepingSession::getStartTime)
+                .min(LocalDateTime::compareTo)
+                .get();
 
-        for (SleepingSession session : sessions) {
-            LocalDateTime start = session.getStartTime();
-            LocalDateTime end = session.getEndTime();
+        LocalDateTime lastEnd = sessions.stream()
+                .map(SleepingSession::getEndTime)
+                .max(LocalDateTime::compareTo)
+                .get();
 
-            LocalDate nightDate = getNightDate(start);
-            LocalDateTime nightStart = nightDate.atStartOfDay();
-            LocalDateTime nightEnd = nightStart.plusHours(6);
+        LocalDate firstNight = getNightDate(firstStart);
+        LocalDate lastNight = getNightDate(lastEnd);
 
-            if (start.isBefore(nightEnd) && end.isAfter(nightStart)) {
-                nightsWithSleep.add(nightDate);
-            }
+        Set<LocalDate> allNights = new HashSet<>();
+        for (LocalDate date = firstNight; !date.isAfter(lastNight); date = date.plusDays(1)) {
+            allNights.add(date);
         }
 
-        if (nightsWithSleep.isEmpty()) {
-            return new SleepAnalysisResult<>(DESCRIPTION, 0);
-        }
+        Set<LocalDate> nightsWithSleep = sessions.stream()
+                .filter(this::isNightSession)
+                .map(session -> getNightDate(session.getStartTime()))
+                .collect(Collectors.toSet());
 
-        LocalDate firstNight = nightsWithSleep.stream().min(LocalDate::compareTo).get();
-        LocalDate lastNight = nightsWithSleep.stream().max(LocalDate::compareTo).get();
-
-        long totalNights = lastNight.toEpochDay() - firstNight.toEpochDay() + 1;
-        int sleeplessNights = (int) (totalNights - nightsWithSleep.size());
-
+        int sleeplessNights = allNights.size() - nightsWithSleep.size();
         return new SleepAnalysisResult<>(DESCRIPTION, sleeplessNights);
     }
 
     private LocalDate getNightDate(LocalDateTime dateTime) {
-        LocalTime time = dateTime.toLocalTime();
-        if (time.isBefore(LocalTime.of(12, 0))) {
+        if (dateTime.getHour() < 12) {
             return dateTime.toLocalDate().minusDays(1);
         }
         return dateTime.toLocalDate();
+    }
+
+    private boolean isNightSession(SleepingSession session) {
+        LocalDateTime start = session.getStartTime();
+        LocalDateTime end = session.getEndTime();
+        LocalDate nightDate = getNightDate(start);
+        LocalDateTime nightStart = nightDate.atStartOfDay();
+        LocalDateTime nightEnd = nightStart.plusHours(6);
+        return start.isBefore(nightEnd) && end.isAfter(nightStart);
     }
 }
