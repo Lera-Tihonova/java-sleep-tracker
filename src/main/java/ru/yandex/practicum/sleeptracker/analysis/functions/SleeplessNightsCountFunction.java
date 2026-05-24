@@ -38,11 +38,12 @@ public class SleeplessNightsCountFunction implements SleepAnalysisFunction<Integ
         }
 
         Set<LocalDate> nightsWithSleep = sessions.stream()
-                .filter(SleepingSession::isNightSession)
+                .filter(SleepingSession::isNightSession) // <-- используем метод из модели
                 .map(session -> getNightDate(session.getStartTime()))
                 .collect(Collectors.toSet());
 
-        return new SleepAnalysisResult<>(DESCRIPTION, allNights.size() - nightsWithSleep.size());
+        int sleeplessNights = allNights.size() - nightsWithSleep.size();
+        return new SleepAnalysisResult<>(DESCRIPTION, sleeplessNights);
     }
 
     private LocalDate getNightDate(LocalDateTime dateTime) {

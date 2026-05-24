@@ -22,7 +22,7 @@ public class ChronotypeFunction implements SleepAnalysisFunction<String> {
         }
 
         List<SleepingSession> nightSessions = sessions.stream()
-                .filter(SleepingSession::isNightSession)
+                .filter(SleepingSession::isNightSession) // <-- используем метод из модели
                 .collect(Collectors.toList());
 
         if (nightSessions.isEmpty()) {
@@ -53,12 +53,8 @@ public class ChronotypeFunction implements SleepAnalysisFunction<String> {
         boolean isOwl = start.isAfter(OWL_START) && end.isAfter(OWL_END);
         boolean isLark = start.isBefore(LARK_START) && end.isBefore(LARK_END);
 
-        if (isOwl) {
-            return Chronotype.OWL;
-        }
-        if (isLark) {
-            return Chronotype.LARK;
-        }
+        if (isOwl) return Chronotype.OWL;
+        if (isLark) return Chronotype.LARK;
         return Chronotype.DOVE;
     }
 }
