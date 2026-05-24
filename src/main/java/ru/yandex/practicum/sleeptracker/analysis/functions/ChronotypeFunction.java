@@ -18,7 +18,18 @@ public class ChronotypeFunction implements SleepAnalysisFunction<String> {
         }
 
         List<SleepingSession> nightSessions = sessions.stream()
-                .filter(SleepingSession::isNightSession)
+                .filter(s -> {
+                    LocalDateTime start = s.getStartTime();
+                    LocalDateTime end = s.getEndTime();
+                    LocalDateTime nightStart = start.toLocalDate().atStartOfDay();
+                    LocalDateTime nightEnd = nightStart.plusHours(6);
+                    if (start.isBefore(nightEnd) && end.isAfter(nightStart)) {
+                        return true;
+                    }
+                    LocalDateTime nextNightStart = start.toLocalDate().plusDays(1).atStartOfDay();
+                    LocalDateTime nextNightEnd = nextNightStart.plusHours(6);
+                    return start.isBefore(nextNightEnd) && end.isAfter(nextNightStart);
+                })
                 .collect(Collectors.toList());
 
         if (nightSessions.isEmpty()) {
