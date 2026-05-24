@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class SleeplessNightsCountFunction implements SleepAnalysisFunction<Integer> {
     private static final String DESCRIPTION = "Количество бессонных ночей";
@@ -33,12 +32,21 @@ public class SleeplessNightsCountFunction implements SleepAnalysisFunction<Integ
         LocalDate firstNight = getNightDate(firstStart);
         LocalDate lastNight = getNightDate(lastEnd);
 
-        Set<LocalDate> allNights = Stream.iterate(firstNight, d -> d.plusDays(1))
-                .limit(lastNight.toEpochDay() - firstNight.toEpochDay() + 1)
-                .collect(Collectors.toSet());
+        Set<LocalDate> allNights = new HashSet<>();
+        for (LocalDate date = firstNight; !date.isAfter(lastNight); date = date.plusDays(1)) {
+            allNights.add(date);
+        }
 
         Set<LocalDate> nightsWithSleep = sessions.stream()
-                .flatMap(session -> getNightsCovered(session).stream())
+                .filter(session -> {
+                    LocalDateTime start = session.getStartTime();
+                    LocalDateTime end = session.getEndTime();
+                    LocalDate nightDate = getNightDate(start);
+                    LocalDateTime nightStart = nightDate.atStartOfDay();
+                    LocalDateTime nightEnd = nightStart.plusHours(6);
+                    return start.isBefore(nightEnd) && end.isAfter(nightStart);
+                })
+                .map(session -> getNightDate(session.getStartTime()))
                 .collect(Collectors.toSet());
 
         return new SleepAnalysisResult<>(DESCRIPTION, allNights.size() - nightsWithSleep.size());
@@ -49,23 +57,5 @@ public class SleeplessNightsCountFunction implements SleepAnalysisFunction<Integ
             return dateTime.toLocalDate().minusDays(1);
         }
         return dateTime.toLocalDate();
-    }
-
-    private Set<LocalDate> getNightsCovered(SleepingSession session) {
-        Set<LocalDate> nights = new HashSet<>();
-        LocalDateTime start = session.getStartTime();
-        LocalDateTime end = session.getEndTime();
-        LocalDate currentNight = getNightDate(start).minusDays(1);
-        LocalDate lastNight = getNightDate(end).plusDays(1);
-
-        while (currentNight.isBefore(lastNight)) {
-            LocalDateTime nightStart = currentNight.atStartOfDay();
-            LocalDateTime nightEnd = nightStart.plusHours(6);
-            if (start.isBefore(nightEnd) && end.isAfter(nightStart)) {
-                nights.add(currentNight);
-            }
-            currentNight = currentNight.plusDays(1);
-        }
-        return nights;
     }
 }
