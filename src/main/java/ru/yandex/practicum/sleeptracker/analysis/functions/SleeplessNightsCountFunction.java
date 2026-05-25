@@ -4,6 +4,7 @@ import ru.yandex.practicum.sleeptracker.analysis.SleepAnalysisResult;
 import ru.yandex.practicum.sleeptracker.model.SleepingSession;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
@@ -13,7 +14,7 @@ public class SleeplessNightsCountFunction implements SleepAnalysisFunction<Integ
 
     @Override
     public SleepAnalysisResult<Integer> apply(List<SleepingSession> sessions) {
-        if (sessions.isEmpty()) {
+        if (sessions == null || sessions.isEmpty()) {
             return new SleepAnalysisResult<>(DESCRIPTION, 0);
         }
 
@@ -24,28 +25,33 @@ public class SleeplessNightsCountFunction implements SleepAnalysisFunction<Integ
             LocalDateTime start = session.getStartTime();
             LocalDateTime end = session.getEndTime();
 
-            LocalDate startNight = getNight(start);
-            LocalDate endNight = getNight(end);
+            LocalDate night1 = getNightForDateTime(start);
+            LocalDate night2 = night1.plusDays(1);
 
-            for (LocalDate night = startNight; !night.isAfter(endNight); night = night.plusDays(1)) {
-                allNights.add(night);
-                if (isNightSleep(start, end, night)) {
-                    nightsWithSleep.add(night);
-                }
+            allNights.add(night1);
+            allNights.add(night2);
+
+            if (coversNight(start, end, night1)) {
+                nightsWithSleep.add(night1);
+            }
+            if (coversNight(start, end, night2)) {
+                nightsWithSleep.add(night2);
             }
         }
 
-        return new SleepAnalysisResult<>(DESCRIPTION, allNights.size() - nightsWithSleep.size());
+        int sleeplessNights = allNights.size() - nightsWithSleep.size();
+        return new SleepAnalysisResult<>(DESCRIPTION, sleeplessNights);
     }
 
-    private LocalDate getNight(LocalDateTime dateTime) {
-        if (dateTime.getHour() < 6) {
+    private LocalDate getNightForDateTime(LocalDateTime dateTime) {
+        LocalTime time = dateTime.toLocalTime();
+        if (time.isBefore(LocalTime.of(6, 0))) {
             return dateTime.toLocalDate().minusDays(1);
         }
         return dateTime.toLocalDate();
     }
 
-    private boolean isNightSleep(LocalDateTime start, LocalDateTime end, LocalDate night) {
+    private boolean coversNight(LocalDateTime start, LocalDateTime end, LocalDate night) {
         LocalDateTime nightStart = night.atStartOfDay();
         LocalDateTime nightEnd = nightStart.plusHours(6);
         return start.isBefore(nightEnd) && end.isAfter(nightStart);
