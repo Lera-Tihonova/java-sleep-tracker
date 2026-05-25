@@ -25,29 +25,34 @@ public class SleeplessNightsCountFunction implements SleepAnalysisFunction<Integ
             LocalDateTime start = session.getStartTime();
             LocalDateTime end = session.getEndTime();
 
-            LocalDate startNight = start.toLocalDate();
-            if (start.toLocalTime().isBefore(LocalTime.of(6, 0))) {
-                startNight = startNight.minusDays(1);
+            LocalDate nightStart = start.toLocalDate();
+            if (start.toLocalTime().isAfter(LocalTime.of(18, 0))) {
+                nightStart = nightStart.plusDays(1);
             }
 
-            LocalDate endNight = end.toLocalDate();
+            LocalDate nightEnd = end.toLocalDate();
             if (end.toLocalTime().isBefore(LocalTime.of(6, 0))) {
-                endNight = endNight.minusDays(1);
+                nightEnd = nightEnd.minusDays(1);
             }
 
-            for (LocalDate night = startNight; !night.isAfter(endNight); night = night.plusDays(1)) {
+            if (nightStart.isAfter(nightEnd)) {
+                LocalDate temp = nightStart;
+                nightStart = nightEnd;
+                nightEnd = temp;
+            }
+
+            for (LocalDate night = nightStart; !night.isAfter(nightEnd); night = night.plusDays(1)) {
                 allNights.add(night);
-                if (isNightCovered(start, end, night)) {
+                if (coversNight(start, end, night)) {
                     nightsWithSleep.add(night);
                 }
             }
         }
 
-        int sleeplessNights = allNights.size() - nightsWithSleep.size();
-        return new SleepAnalysisResult<>(DESCRIPTION, sleeplessNights);
+        return new SleepAnalysisResult<>(DESCRIPTION, allNights.size() - nightsWithSleep.size());
     }
 
-    private boolean isNightCovered(LocalDateTime start, LocalDateTime end, LocalDate night) {
+    private boolean coversNight(LocalDateTime start, LocalDateTime end, LocalDate night) {
         LocalDateTime nightStart = night.atStartOfDay();
         LocalDateTime nightEnd = nightStart.plusHours(6);
         return start.isBefore(nightEnd) && end.isAfter(nightStart);
