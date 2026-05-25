@@ -17,42 +17,25 @@ public class SleeplessNightsCountFunction implements SleepAnalysisFunction<Integ
             return new SleepAnalysisResult<>(DESCRIPTION, 0);
         }
 
-        LocalDate firstNight = null;
-        LocalDate lastNight = null;
-
-        for (SleepingSession session : sessions) {
-            LocalDate night = getNightDate(session.getStartTime());
-            if (firstNight == null || night.isBefore(firstNight)) {
-                firstNight = night;
-            }
-            if (lastNight == null || night.isAfter(lastNight)) {
-                lastNight = night;
-            }
-        }
-
         Set<LocalDate> allNights = new HashSet<>();
-        for (LocalDate date = firstNight; !date.isAfter(lastNight); date = date.plusDays(1)) {
-            allNights.add(date);
-        }
-
         Set<LocalDate> nightsWithSleep = new HashSet<>();
+
         for (SleepingSession session : sessions) {
             LocalDateTime start = session.getStartTime();
             LocalDateTime end = session.getEndTime();
 
-            LocalDate night1 = getNightDate(start);
-            if (coversNight(start, end, night1)) {
-                nightsWithSleep.add(night1);
-            }
+            LocalDate startNight = getNightDate(start);
+            LocalDate endNight = getNightDate(end);
 
-            LocalDate night2 = night1.plusDays(1);
-            if (coversNight(start, end, night2)) {
-                nightsWithSleep.add(night2);
+            for (LocalDate night = startNight; !night.isAfter(endNight); night = night.plusDays(1)) {
+                allNights.add(night);
+                if (coversNight(start, end, night)) {
+                    nightsWithSleep.add(night);
+                }
             }
         }
 
-        int sleeplessNights = allNights.size() - nightsWithSleep.size();
-        return new SleepAnalysisResult<>(DESCRIPTION, sleeplessNights);
+        return new SleepAnalysisResult<>(DESCRIPTION, allNights.size() - nightsWithSleep.size());
     }
 
     private LocalDate getNightDate(LocalDateTime dateTime) {
