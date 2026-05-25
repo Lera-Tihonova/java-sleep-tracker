@@ -3,6 +3,7 @@ package ru.yandex.practicum.sleeptracker.analysis.functions;
 import ru.yandex.practicum.sleeptracker.analysis.SleepAnalysisResult;
 import ru.yandex.practicum.sleeptracker.model.SleepingSession;
 import ru.yandex.practicum.sleeptracker.model.Chronotype;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
