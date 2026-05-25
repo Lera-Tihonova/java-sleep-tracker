@@ -25,23 +25,10 @@ public class SleeplessNightsCountFunction implements SleepAnalysisFunction<Integ
             LocalDateTime start = session.getStartTime();
             LocalDateTime end = session.getEndTime();
 
-            LocalDate nightStart = start.toLocalDate();
-            if (start.toLocalTime().isAfter(LocalTime.of(18, 0))) {
-                nightStart = nightStart.plusDays(1);
-            }
+            LocalDate startDay = start.toLocalDate();
+            LocalDate endDay = end.toLocalDate();
 
-            LocalDate nightEnd = end.toLocalDate();
-            if (end.toLocalTime().isBefore(LocalTime.of(6, 0))) {
-                nightEnd = nightEnd.minusDays(1);
-            }
-
-            if (nightStart.isAfter(nightEnd)) {
-                LocalDate temp = nightStart;
-                nightStart = nightEnd;
-                nightEnd = temp;
-            }
-
-            for (LocalDate night = nightStart; !night.isAfter(nightEnd); night = night.plusDays(1)) {
+            for (LocalDate night = startDay.minusDays(1); !night.isAfter(endDay.plusDays(1)); night = night.plusDays(1)) {
                 allNights.add(night);
                 if (coversNight(start, end, night)) {
                     nightsWithSleep.add(night);
@@ -49,7 +36,8 @@ public class SleeplessNightsCountFunction implements SleepAnalysisFunction<Integ
             }
         }
 
-        return new SleepAnalysisResult<>(DESCRIPTION, allNights.size() - nightsWithSleep.size());
+        int sleeplessNights = allNights.size() - nightsWithSleep.size();
+        return new SleepAnalysisResult<>(DESCRIPTION, sleeplessNights);
     }
 
     private boolean coversNight(LocalDateTime start, LocalDateTime end, LocalDate night) {
