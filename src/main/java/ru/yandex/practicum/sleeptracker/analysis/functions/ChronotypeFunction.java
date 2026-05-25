@@ -22,12 +22,14 @@ public class ChronotypeFunction implements SleepAnalysisFunction<String> {
                 .filter(s -> {
                     LocalDateTime start = s.getStartTime();
                     LocalDateTime end = s.getEndTime();
-                    LocalDateTime nightStart = start.toLocalDate().atStartOfDay();
+                    LocalDate night = getNightDate(start);
+                    LocalDateTime nightStart = night.atStartOfDay();
                     LocalDateTime nightEnd = nightStart.plusHours(6);
                     if (start.isBefore(nightEnd) && end.isAfter(nightStart)) {
                         return true;
                     }
-                    LocalDateTime nextNightStart = start.toLocalDate().plusDays(1).atStartOfDay();
+                    LocalDate nextNight = night.plusDays(1);
+                    LocalDateTime nextNightStart = nextNight.atStartOfDay();
                     LocalDateTime nextNightEnd = nextNightStart.plusHours(6);
                     return start.isBefore(nextNightEnd) && end.isAfter(nextNightStart);
                 })
@@ -68,5 +70,12 @@ public class ChronotypeFunction implements SleepAnalysisFunction<String> {
         }
 
         return new SleepAnalysisResult<>(DESCRIPTION, result.getRussianName());
+    }
+
+    private LocalDate getNightDate(LocalDateTime dateTime) {
+        if (dateTime.getHour() < 12) {
+            return dateTime.toLocalDate().minusDays(1);
+        }
+        return dateTime.toLocalDate();
     }
 }
