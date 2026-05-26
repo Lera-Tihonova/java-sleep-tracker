@@ -25,25 +25,36 @@ public class SleeplessNightsCountFunction implements SleepAnalysisFunction<Integ
             LocalDateTime start = session.getStartTime();
             LocalDateTime end = session.getEndTime();
 
-            LocalDate startNight = start.toLocalDate();
-            if (start.toLocalTime().isBefore(LocalTime.of(6, 0))) {
-                startNight = startNight.minusDays(1);
-            }
-
-            LocalDate endNight = end.toLocalDate();
-            if (end.toLocalTime().isBefore(LocalTime.of(6, 0))) {
-                endNight = endNight.minusDays(1);
-            }
-
-            for (LocalDate night = startNight; !night.isAfter(endNight); night = night.plusDays(1)) {
+            LocalDate night = getNight(start);
+            if (coversNight(start, end, night)) {
+                nightsWithSleep.add(night);
                 allNights.add(night);
-                if (coversNight(start, end, night)) {
-                    nightsWithSleep.add(night);
+            } else {
+                LocalDate nextNight = night.plusDays(1);
+                if (coversNight(start, end, nextNight)) {
+                    nightsWithSleep.add(nextNight);
+                    allNights.add(nextNight);
                 }
             }
         }
 
+        // Добавляем все ночи между первой и последней
+        if (!nightsWithSleep.isEmpty()) {
+            LocalDate first = nightsWithSleep.stream().min(LocalDate::compareTo).get();
+            LocalDate last = nightsWithSleep.stream().max(LocalDate::compareTo).get();
+            for (LocalDate date = first; !date.isAfter(last); date = date.plusDays(1)) {
+                allNights.add(date);
+            }
+        }
+
         return new SleepAnalysisResult<>(DESCRIPTION, allNights.size() - nightsWithSleep.size());
+    }
+
+    private LocalDate getNight(LocalDateTime dateTime) {
+        if (dateTime.getHour() < 6) {
+            return dateTime.toLocalDate().minusDays(1);
+        }
+        return dateTime.toLocalDate();
     }
 
     private boolean coversNight(LocalDateTime start, LocalDateTime end, LocalDate night) {
