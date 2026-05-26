@@ -40,8 +40,7 @@ public class SleeplessNightsCountFunction implements SleepAnalysisFunction<Integ
             }
         }
 
-        int sleeplessNights = allNights.size() - nightsWithSleep.size();
-        return new SleepAnalysisResult<>(DESCRIPTION, sleeplessNights);
+        return new SleepAnalysisResult<>(DESCRIPTION, allNights.size() - nightsWithSleep.size());
     }
 
     private boolean coversNight(LocalDateTime start, LocalDateTime end, LocalDate night) {
