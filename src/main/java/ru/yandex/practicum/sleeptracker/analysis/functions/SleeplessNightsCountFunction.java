@@ -23,11 +23,7 @@ public class SleeplessNightsCountFunction implements SleepAnalysisFunction<Integ
             LocalDateTime start = session.getStartTime();
             LocalDateTime end = session.getEndTime();
 
-            LocalDate night = start.toLocalDate();
-            if (start.getHour() < 12) {
-                night = night.minusDays(1);
-            }
-
+            LocalDate night = getNight(start);
             if (coversNight(start, end, night)) {
                 nightsWithSleep.add(night);
             }
@@ -55,8 +51,11 @@ public class SleeplessNightsCountFunction implements SleepAnalysisFunction<Integ
     }
 
     private LocalDate getNight(LocalDateTime dateTime) {
-        if (dateTime.getHour() < 12) {
+        if (dateTime.getHour() < 6) {
             return dateTime.toLocalDate().minusDays(1);
+        }
+        if (dateTime.getHour() >= 18) {
+            return dateTime.toLocalDate().plusDays(1);
         }
         return dateTime.toLocalDate();
     }
