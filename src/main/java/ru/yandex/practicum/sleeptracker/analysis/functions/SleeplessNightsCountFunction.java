@@ -33,7 +33,13 @@ public class SleeplessNightsCountFunction implements SleepAnalysisFunction<Integ
             }
         }
 
-        if (!nightsWithSleep.isEmpty()) {
+        if (nightsWithSleep.isEmpty()) {
+            LocalDate firstNight = getNight(sessions.get(0).getStartTime());
+            LocalDate lastNight = getNight(sessions.get(sessions.size() - 1).getEndTime());
+            for (LocalDate date = firstNight; !date.isAfter(lastNight); date = date.plusDays(1)) {
+                allNights.add(date);
+            }
+        } else {
             LocalDate first = nightsWithSleep.stream().min(LocalDate::compareTo).get();
             LocalDate last = nightsWithSleep.stream().max(LocalDate::compareTo).get();
             for (LocalDate date = first; !date.isAfter(last); date = date.plusDays(1)) {
