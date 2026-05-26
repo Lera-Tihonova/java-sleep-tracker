@@ -38,7 +38,6 @@ public class SleeplessNightsCountFunction implements SleepAnalysisFunction<Integ
             }
         }
 
-        // Добавляем все ночи между первой и последней
         if (!nightsWithSleep.isEmpty()) {
             LocalDate first = nightsWithSleep.stream().min(LocalDate::compareTo).get();
             LocalDate last = nightsWithSleep.stream().max(LocalDate::compareTo).get();
@@ -51,7 +50,8 @@ public class SleeplessNightsCountFunction implements SleepAnalysisFunction<Integ
     }
 
     private LocalDate getNight(LocalDateTime dateTime) {
-        if (dateTime.getHour() < 6) {
+        int hour = dateTime.getHour();
+        if (hour < 6) {
             return dateTime.toLocalDate().minusDays(1);
         }
         return dateTime.toLocalDate();
