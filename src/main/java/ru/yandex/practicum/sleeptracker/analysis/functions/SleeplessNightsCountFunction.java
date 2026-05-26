@@ -4,6 +4,7 @@ import ru.yandex.practicum.sleeptracker.analysis.SleepAnalysisResult;
 import ru.yandex.practicum.sleeptracker.model.SleepingSession;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
@@ -24,23 +25,30 @@ public class SleeplessNightsCountFunction implements SleepAnalysisFunction<Integ
             LocalDateTime start = session.getStartTime();
             LocalDateTime end = session.getEndTime();
 
-            LocalDate date1 = start.toLocalDate();
-            LocalDate date2 = end.toLocalDate();
-
-            for (LocalDate date = date1; !date.isAfter(date2); date = date.plusDays(1)) {
-                allNights.add(date);
-                allNights.add(date.plusDays(1));
+            LocalDate startNight = start.toLocalDate();
+            if (start.toLocalTime().isBefore(LocalTime.of(6, 0))) {
+                startNight = startNight.minusDays(1);
             }
 
-            for (LocalDate date = date1.minusDays(1); !date.isAfter(date2.plusDays(1)); date = date.plusDays(1)) {
-                LocalDateTime nightStart = date.atStartOfDay();
-                LocalDateTime nightEnd = nightStart.plusHours(6);
-                if (start.isBefore(nightEnd) && end.isAfter(nightStart)) {
-                    nightsWithSleep.add(date);
+            LocalDate endNight = end.toLocalDate();
+            if (end.toLocalTime().isBefore(LocalTime.of(6, 0))) {
+                endNight = endNight.minusDays(1);
+            }
+
+            for (LocalDate night = startNight; !night.isAfter(endNight); night = night.plusDays(1)) {
+                allNights.add(night);
+                if (coversNight(start, end, night)) {
+                    nightsWithSleep.add(night);
                 }
             }
         }
 
         return new SleepAnalysisResult<>(DESCRIPTION, allNights.size() - nightsWithSleep.size());
+    }
+
+    private boolean coversNight(LocalDateTime start, LocalDateTime end, LocalDate night) {
+        LocalDateTime nightStart = night.atStartOfDay();
+        LocalDateTime nightEnd = nightStart.plusHours(6);
+        return start.isBefore(nightEnd) && end.isAfter(nightStart);
     }
 }
