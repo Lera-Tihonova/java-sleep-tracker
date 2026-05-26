@@ -24,16 +24,17 @@ public class SleeplessNightsCountFunction implements SleepAnalysisFunction<Integ
             LocalDateTime start = session.getStartTime();
             LocalDateTime end = session.getEndTime();
 
-            LocalDate night = getNight(start);
-            if (coversNight(start, end, night)) {
-                nightsWithSleep.add(night);
-                allNights.add(night);
-            } else {
-                LocalDate nextNight = night.plusDays(1);
-                if (coversNight(start, end, nextNight)) {
-                    nightsWithSleep.add(nextNight);
-                    allNights.add(nextNight);
-                }
+            LocalDate night1 = getNight(start);
+            LocalDate night2 = getNight(end);
+
+            allNights.add(night1);
+            allNights.add(night2);
+
+            if (coversNight(start, end, night1)) {
+                nightsWithSleep.add(night1);
+            }
+            if (coversNight(start, end, night2)) {
+                nightsWithSleep.add(night2);
             }
         }
 
