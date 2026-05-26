@@ -4,7 +4,6 @@ import ru.yandex.practicum.sleeptracker.analysis.SleepAnalysisResult;
 import ru.yandex.practicum.sleeptracker.model.SleepingSession;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
@@ -50,8 +49,7 @@ public class SleeplessNightsCountFunction implements SleepAnalysisFunction<Integ
     }
 
     private LocalDate getNight(LocalDateTime dateTime) {
-        int hour = dateTime.getHour();
-        if (hour < 6) {
+        if (dateTime.getHour() < 6) {
             return dateTime.toLocalDate().minusDays(1);
         }
         return dateTime.toLocalDate();
