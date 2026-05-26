@@ -17,6 +17,7 @@ public class SleeplessNightsCountFunction implements SleepAnalysisFunction<Integ
             return new SleepAnalysisResult<>(DESCRIPTION, 0);
         }
 
+        Set<LocalDate> allNights = new HashSet<>();
         Set<LocalDate> nightsWithSleep = new HashSet<>();
 
         for (SleepingSession session : sessions) {
@@ -24,41 +25,23 @@ public class SleeplessNightsCountFunction implements SleepAnalysisFunction<Integ
             LocalDateTime end = session.getEndTime();
 
             LocalDate night = start.toLocalDate();
-            if (start.getHour() >= 18 || (start.getHour() < 6 && end.getHour() > 0)) {
+            if (start.getHour() >= 12) {
                 night = night.plusDays(1);
             }
-            if (start.getHour() < 6) {
-                night = night.minusDays(1);
-            }
+
+            allNights.add(night);
+            allNights.add(night.minusDays(1));
 
             if (coversNight(start, end, night)) {
                 nightsWithSleep.add(night);
             }
-        }
-
-        Set<LocalDate> allNights = new HashSet<>();
-        if (!nightsWithSleep.isEmpty()) {
-            LocalDate first = nightsWithSleep.stream().min(LocalDate::compareTo).get();
-            LocalDate last = nightsWithSleep.stream().max(LocalDate::compareTo).get();
-            for (LocalDate date = first; !date.isAfter(last); date = date.plusDays(1)) {
-                allNights.add(date);
-            }
-        } else {
-            LocalDate first = getNight(sessions.get(0).getStartTime());
-            LocalDate last = getNight(sessions.get(sessions.size() - 1).getEndTime());
-            for (LocalDate date = first; !date.isAfter(last); date = date.plusDays(1)) {
-                allNights.add(date);
+            if (coversNight(start, end, night.minusDays(1))) {
+                nightsWithSleep.add(night.minusDays(1));
             }
         }
 
-        return new SleepAnalysisResult<>(DESCRIPTION, allNights.size() - nightsWithSleep.size());
-    }
-
-    private LocalDate getNight(LocalDateTime dateTime) {
-        if (dateTime.getHour() < 12) {
-            return dateTime.toLocalDate().minusDays(1);
-        }
-        return dateTime.toLocalDate();
+        int sleeplessNights = allNights.size() - nightsWithSleep.size();
+        return new SleepAnalysisResult<>(DESCRIPTION, sleeplessNights);
     }
 
     private boolean coversNight(LocalDateTime start, LocalDateTime end, LocalDate night) {
