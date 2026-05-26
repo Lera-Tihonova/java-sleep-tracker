@@ -17,24 +17,19 @@ public class SleeplessNightsCountFunction implements SleepAnalysisFunction<Integ
             return new SleepAnalysisResult<>(DESCRIPTION, 0);
         }
 
-        Set<LocalDate> allNights = new HashSet<>();
         Set<LocalDate> nightsWithSleep = new HashSet<>();
+        Set<LocalDate> allNights = new HashSet<>();
 
         for (SleepingSession session : sessions) {
             LocalDateTime start = session.getStartTime();
             LocalDateTime end = session.getEndTime();
 
-            LocalDate night1 = getNight(start);
-            LocalDate night2 = getNight(end);
-
-            allNights.add(night1);
-            allNights.add(night2);
-
-            if (coversNight(start, end, night1)) {
-                nightsWithSleep.add(night1);
+            LocalDate night = getNight(start);
+            if (coversNight(start, end, night)) {
+                nightsWithSleep.add(night);
             }
-            if (coversNight(start, end, night2)) {
-                nightsWithSleep.add(night2);
+            if (coversNight(start, end, night.plusDays(1))) {
+                nightsWithSleep.add(night.plusDays(1));
             }
         }
 
