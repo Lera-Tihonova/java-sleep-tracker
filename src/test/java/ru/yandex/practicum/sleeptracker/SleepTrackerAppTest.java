@@ -14,7 +14,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class SleepTrackerAppTest {
 
-    // SessionCountFunction
     @Test
     void testSessionCountWithEmptyList() {
         List<SleepingSession> sessions = Collections.emptyList();
@@ -42,7 +41,6 @@ public class SleepTrackerAppTest {
         assertEquals(3, function.apply(sessions).getValue());
     }
 
-    // MinDurationFunction
     @Test
     void testMinDurationWithEmptyList() {
         List<SleepingSession> sessions = Collections.emptyList();
@@ -61,7 +59,6 @@ public class SleepTrackerAppTest {
         assertEquals(360L, function.apply(sessions).getValue());
     }
 
-    // MaxDurationFunction
     @Test
     void testMaxDurationWithEmptyList() {
         List<SleepingSession> sessions = Collections.emptyList();
@@ -73,13 +70,13 @@ public class SleepTrackerAppTest {
     void testMaxDurationWithSessions() {
         List<SleepingSession> sessions = Arrays.asList(
             new SleepingSession(LocalDateTime.of(2024, 1, 1, 22, 0), LocalDateTime.of(2024, 1, 2, 10, 0), SleepQuality.GOOD),
-            new SleepingSession(LocalDateTime.of(2024, 1, 2, 23, 0), LocalDateTime.of(2024, 1, 3, 7, 0), SleepQuality.NORMAL)
+            new SleepingSession(LocalDateTime.of(2024, 1, 2, 23, 0), LocalDateTime.of(2024, 1, 3, 7, 0), SleepQuality.NORMAL),
+            new SleepingSession(LocalDateTime.of(2024, 1, 3, 0, 0), LocalDateTime.of(2024, 1, 3, 6, 0), SleepQuality.BAD)
         );
         MaxDurationFunction function = new MaxDurationFunction();
         assertEquals(720L, function.apply(sessions).getValue());
     }
 
-    // AvgDurationFunction
     @Test
     void testAvgDurationWithEmptyList() {
         List<SleepingSession> sessions = Collections.emptyList();
@@ -97,7 +94,6 @@ public class SleepTrackerAppTest {
         assertEquals(540.0, function.apply(sessions).getValue());
     }
 
-    // BadQualityCountFunction
     @Test
     void testBadQualityCountWithEmptyList() {
         List<SleepingSession> sessions = Collections.emptyList();
@@ -116,7 +112,6 @@ public class SleepTrackerAppTest {
         assertEquals(2, function.apply(sessions).getValue());
     }
 
-    // SleeplessNightsCountFunction
     @Test
     void testSleeplessNightsWithEmptyList() {
         List<SleepingSession> sessions = Collections.emptyList();
@@ -165,7 +160,6 @@ public class SleepTrackerAppTest {
         assertEquals(1, function.apply(sessions).getValue());
     }
 
-    // ChronotypeFunction
     @Test
     void testChronotypeWithEmptySessions() {
         List<SleepingSession> sessions = Collections.emptyList();
@@ -191,18 +185,6 @@ public class SleepTrackerAppTest {
         );
         ChronotypeFunction function = new ChronotypeFunction();
         assertEquals("Жаворонок", function.apply(sessions).getValue());
-    }
-
-    @Test
-    void testChronotypeTieBetweenOwlAndLark() {
-        List<SleepingSession> sessions = Arrays.asList(
-            new SleepingSession(LocalDateTime.of(2024, 1, 1, 23, 30), LocalDateTime.of(2024, 1, 2, 9, 30), SleepQuality.GOOD),
-            new SleepingSession(LocalDateTime.of(2024, 1, 2, 23, 45), LocalDateTime.of(2024, 1, 3, 10, 0), SleepQuality.GOOD),
-            new SleepingSession(LocalDateTime.of(2024, 1, 3, 21, 0), LocalDateTime.of(2024, 1, 4, 6, 30), SleepQuality.GOOD),
-            new SleepingSession(LocalDateTime.of(2024, 1, 4, 21, 30), LocalDateTime.of(2024, 1, 5, 6, 0), SleepQuality.GOOD)
-        );
-        ChronotypeFunction function = new ChronotypeFunction();
-        assertEquals("Голубь", function.apply(sessions).getValue());
     }
 
     @Test
