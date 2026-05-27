@@ -9,7 +9,13 @@ public class AvgDurationFunction implements SleepAnalysisFunction<Double> {
 
     @Override
     public SleepAnalysisResult<Double> apply(List<SleepingSession> sessions) {
-        double avg = sessions.stream().mapToLong(SleepingSession::getDurationMinutes).average().orElse(0);
+        if (sessions == null || sessions.isEmpty()) {
+            return new SleepAnalysisResult<>(DESCRIPTION, 0.0);
+        }
+        double avg = sessions.stream()
+                .mapToLong(SleepingSession::getDurationMinutes)
+                .average()
+                .orElse(0.0);
         return new SleepAnalysisResult<>(DESCRIPTION, avg);
     }
 }
