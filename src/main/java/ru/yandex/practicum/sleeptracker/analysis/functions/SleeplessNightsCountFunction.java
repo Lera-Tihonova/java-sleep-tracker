@@ -18,7 +18,6 @@ public class SleeplessNightsCountFunction implements SleepAnalysisFunction<Integ
             return new SleepAnalysisResult<>(DESCRIPTION, 0);
         }
 
-        Set<LocalDate> allNights = new HashSet<>();
         Set<LocalDate> nightsWithSleep = new HashSet<>();
 
         for (SleepingSession session : sessions) {
@@ -30,15 +29,24 @@ public class SleeplessNightsCountFunction implements SleepAnalysisFunction<Integ
                 night = night.minusDays(1);
             }
 
-            allNights.add(night);
-            allNights.add(night.plusDays(1));
-
             if (coversNight(start, end, night)) {
                 nightsWithSleep.add(night);
             }
             if (coversNight(start, end, night.plusDays(1))) {
                 nightsWithSleep.add(night.plusDays(1));
             }
+        }
+
+        if (nightsWithSleep.isEmpty()) {
+            return new SleepAnalysisResult<>(DESCRIPTION, 0);
+        }
+
+        LocalDate first = nightsWithSleep.stream().min(LocalDate::compareTo).get();
+        LocalDate last = nightsWithSleep.stream().max(LocalDate::compareTo).get();
+
+        Set<LocalDate> allNights = new HashSet<>();
+        for (LocalDate date = first; !date.isAfter(last); date = date.plusDays(1)) {
+            allNights.add(date);
         }
 
         int sleepless = allNights.size() - nightsWithSleep.size();
