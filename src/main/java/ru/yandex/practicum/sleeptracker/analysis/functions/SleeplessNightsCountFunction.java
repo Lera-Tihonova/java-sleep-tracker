@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
 
+@SuppressWarnings("unused")
 public class SleeplessNightsCountFunction implements SleepAnalysisFunction<Integer> {
     private static final String DESCRIPTION = "Количество бессонных ночей";
 
