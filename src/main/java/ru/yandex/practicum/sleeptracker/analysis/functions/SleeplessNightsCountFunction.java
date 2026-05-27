@@ -2,9 +2,9 @@ package ru.yandex.practicum.sleeptracker.analysis.functions;
 
 import ru.yandex.practicum.sleeptracker.analysis.SleepAnalysisResult;
 import ru.yandex.practicum.sleeptracker.model.SleepingSession;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
@@ -19,44 +19,37 @@ public class SleeplessNightsCountFunction implements SleepAnalysisFunction<Integ
         }
 
         Set<LocalDate> nightsWithSleep = new HashSet<>();
+        Set<LocalDate> allNights = new HashSet<>();
 
-        // 1. Определяем ночи, в которые был сон
         for (SleepingSession session : sessions) {
             LocalDateTime start = session.getStartTime();
             LocalDateTime end = session.getEndTime();
 
-            // Ночь начинается в 00:00 и заканчивается в 06:00.
-            // Для сессии проверяем две возможные ночи: текущую (по дате старта) и следующую.
-            LocalDate currentNight = start.toLocalDate();
-            // Если сессия началась после полуночи (час < 6), она принадлежит предыдущей ночи
-            if (start.getHour() < 6) {
-                currentNight = currentNight.minusDays(1);
+            LocalDate startNight = start.toLocalDate();
+            if (start.toLocalTime().isBefore(LocalTime.of(6, 0))) {
+                startNight = startNight.minusDays(1);
             }
 
-            checkAndAddNight(start, end, currentNight, nightsWithSleep);
-            checkAndAddNight(start, end, currentNight.plusDays(1), nightsWithSleep);
+            LocalDate endNight = end.toLocalDate();
+            if (end.toLocalTime().isBefore(LocalTime.of(6, 0))) {
+                endNight = endNight.minusDays(1);
+            }
+
+            for (LocalDate night = startNight; !night.isAfter(endNight); night = night.plusDays(1)) {
+                allNights.add(night);
+                if (isNightSleep(start, end, night)) {
+                    nightsWithSleep.add(night);
+                }
+            }
         }
 
-        // 2. Если нет ни одной ночи со сном (все сессии дневные)
-        if (nightsWithSleep.isEmpty()) {
-            return new SleepAnalysisResult<>(DESCRIPTION, 0);
-        }
-
-        // 3. Определяем диапазон всех ночей от первой до последней, где был сон
-        LocalDate firstNight = nightsWithSleep.stream().min(LocalDate::compareTo).get();
-        LocalDate lastNight = nightsWithSleep.stream().max(LocalDate::compareTo).get();
-
-        long totalNights = firstNight.until(lastNight, java.time.temporal.ChronoUnit.DAYS) + 1;
-        int sleeplessNights = (int) (totalNights - nightsWithSleep.size());
-
-        return new SleepAnalysisResult<>(DESCRIPTION, sleeplessNights);
+        int sleepless = allNights.size() - nightsWithSleep.size();
+        return new SleepAnalysisResult<>(DESCRIPTION, sleepless);
     }
 
-    private void checkAndAddNight(LocalDateTime start, LocalDateTime end, LocalDate night, Set<LocalDate> nightsWithSleep) {
+    private boolean isNightSleep(LocalDateTime start, LocalDateTime end, LocalDate night) {
         LocalDateTime nightStart = night.atStartOfDay();
         LocalDateTime nightEnd = nightStart.plusHours(6);
-        if (start.isBefore(nightEnd) && end.isAfter(nightStart)) {
-            nightsWithSleep.add(night);
-        }
+        return start.isBefore(nightEnd) && end.isAfter(nightStart);
     }
 }
