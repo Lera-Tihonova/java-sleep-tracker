@@ -4,6 +4,7 @@ import ru.yandex.practicum.sleeptracker.analysis.SleepAnalysisResult;
 import ru.yandex.practicum.sleeptracker.model.SleepingSession;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
@@ -25,7 +26,7 @@ public class SleeplessNightsCountFunction implements SleepAnalysisFunction<Integ
             LocalDateTime end = session.getEndTime();
 
             LocalDate night = start.toLocalDate();
-            if (start.getHour() < NIGHT_END_HOUR) {
+            if (start.toLocalTime().isBefore(LocalTime.of(6, 0))) {
                 night = night.minusDays(1);
             }
 
@@ -34,6 +35,14 @@ public class SleeplessNightsCountFunction implements SleepAnalysisFunction<Integ
 
             if (start.isBefore(nightEnd) && end.isAfter(nightStart)) {
                 nightsWithSleep.add(night);
+            }
+
+            LocalDate nextNight = night.plusDays(1);
+            LocalDateTime nextNightStart = nextNight.atStartOfDay();
+            LocalDateTime nextNightEnd = nextNightStart.plusHours(NIGHT_END_HOUR);
+
+            if (start.isBefore(nextNightEnd) && end.isAfter(nextNightStart)) {
+                nightsWithSleep.add(nextNight);
             }
         }
 
