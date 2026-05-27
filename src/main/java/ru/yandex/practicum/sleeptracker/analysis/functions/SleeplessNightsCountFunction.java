@@ -19,35 +19,37 @@ public class SleeplessNightsCountFunction implements SleepAnalysisFunction<Integ
         }
 
         Set<LocalDate> nightsWithSleep = new HashSet<>();
-        Set<LocalDate> allNights = new HashSet<>();
 
         for (SleepingSession session : sessions) {
             LocalDateTime start = session.getStartTime();
             LocalDateTime end = session.getEndTime();
 
-            LocalDate startNight = start.toLocalDate();
-            if (start.toLocalTime().isBefore(LocalTime.of(6, 0))) {
-                startNight = startNight.minusDays(1);
+            LocalDate night = start.toLocalDate();
+            if (start.getHour() < 6) {
+                night = night.minusDays(1);
             }
 
-            LocalDate endNight = end.toLocalDate();
-            if (end.toLocalTime().isBefore(LocalTime.of(6, 0))) {
-                endNight = endNight.minusDays(1);
-            }
-
-            for (LocalDate night = startNight; !night.isAfter(endNight); night = night.plusDays(1)) {
-                allNights.add(night);
-                if (isNightSleep(start, end, night)) {
-                    nightsWithSleep.add(night);
-                }
+            if (coversNight(start, end, night)) {
+                nightsWithSleep.add(night);
+            } else if (coversNight(start, end, night.plusDays(1))) {
+                nightsWithSleep.add(night.plusDays(1));
             }
         }
 
-        int sleepless = allNights.size() - nightsWithSleep.size();
-        return new SleepAnalysisResult<>(DESCRIPTION, sleepless);
+        if (nightsWithSleep.isEmpty()) {
+            return new SleepAnalysisResult<>(DESCRIPTION, 0);
+        }
+
+        LocalDate firstNight = nightsWithSleep.stream().min(LocalDate::compareTo).get();
+        LocalDate lastNight = nightsWithSleep.stream().max(LocalDate::compareTo).get();
+
+        int totalNights = (int) (lastNight.toEpochDay() - firstNight.toEpochDay() + 1);
+        int sleeplessNights = totalNights - nightsWithSleep.size();
+
+        return new SleepAnalysisResult<>(DESCRIPTION, sleeplessNights);
     }
 
-    private boolean isNightSleep(LocalDateTime start, LocalDateTime end, LocalDate night) {
+    private boolean coversNight(LocalDateTime start, LocalDateTime end, LocalDate night) {
         LocalDateTime nightStart = night.atStartOfDay();
         LocalDateTime nightEnd = nightStart.plusHours(6);
         return start.isBefore(nightEnd) && end.isAfter(nightStart);
